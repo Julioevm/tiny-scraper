@@ -51,3 +51,9 @@ systems = [
     {"name": "SFC", "id": 4, "extensions": ["sfc","smc","fig","swc","mgd", "zip"]},
     {"name": "VB", "id": 1, "extensions": []},
 ]
+
+def get_system_id(system_name: str) -> int:
+    for system in systems:
+        if system["name"] == system_name:
+            return system["id"]
+    return -1
