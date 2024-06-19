@@ -5,7 +5,7 @@ import json
 import base64
 from pathlib import Path
 from simple_term_menu import TerminalMenu
-from systems import get_system_id, systems
+from systems import get_system_extension, get_system_id, systems
 from rom import Rom
 
 CONFIG_PATH = "config.json"
@@ -13,13 +13,14 @@ USER = ""
 PASSWORD = ""
 DEVID = ""
 DEVPASSWORD = ""
+MEDIA_TYPE = "ss"
 
 # List of systems
 systems = ["PSX", "GB", "GBC", "FC", "SFC", "MD"]
 
 
 def load_config_from_json(filepath) -> bool:
-    global USER, PASSWORD, DEVID, DEVPASSWORD
+    global USER, PASSWORD, DEVID, DEVPASSWORD, MEDIA_TYPE
     if not os.path.exists(filepath):
         print(f"Config file {filepath} not found.")
         return False
@@ -30,6 +31,7 @@ def load_config_from_json(filepath) -> bool:
         PASSWORD = config.get("password")
         DEVID = config.get("devid")
         DEVPASSWORD = config.get("devpassword")
+        MEDIA_TYPE = config.get("media_type") or "ss"
 
     return True
 
@@ -40,10 +42,11 @@ def crc32_from_file(rom: str):
     return "%08X" % buf
 
 
-def get_roms(path: str) -> list[Rom]:
+def get_roms(path: str, system: str) -> list[Rom]:
     roms = []
+    system_extensions = get_system_extension(system)
     for file in os.listdir(path):
-        if file.endswith(".sfc"):
+        if file.endswith(tuple(system_extensions)):
             name = file[:-4]
             rom = Rom(filename=file, name=name, crc=crc32_from_file(Path(path) / file))
             roms.append(rom)
@@ -72,6 +75,7 @@ def scrape_screenshot(game_name: str, crc: str, system_id: int):
     decoded_devpassword = base64.b64decode(DEVPASSWORD).decode()
     url = f"https://api.screenscraper.fr/api2/jeuInfos.php?devid={decoded_devid}&devpassword={decoded_devpassword}&softname=tiny-scraper&output=json&ssid={USER}&sspassword={PASSWORD}&crc=50ABC90A&systemeid={system_id}&romtype=rom&romnom={game_name}"
 
+    print(f"Scraping screenshot for {game_name}...")
     response = requests.get(url)
     if response.status_code == 200:
         try:
@@ -81,7 +85,7 @@ def scrape_screenshot(game_name: str, crc: str, system_id: int):
 
             screenshot_url = ""
             for media in game_data.get("medias"):
-                if media["type"] == "ss":
+                if media["type"] == MEDIA_TYPE:
                     screenshot_url = media["url"]
                     break
 
@@ -115,6 +119,8 @@ def main():
 
         # List files in the system folder
         system_files = get_files_without_extension(system_path)
+        
+        roms = get_roms(system_path, system)
 
         # Check for Imgs folder
         imgs_folder = system_path / "Imgs"
@@ -124,21 +130,21 @@ def main():
         else:
             imgs_files = get_files_without_extension(imgs_folder)
 
-        # Compare lists
+        # TODO: Compare lists and only scrape missing files
         missing_files = [f for f in system_files if f not in imgs_files]
         print(f"{len(missing_files)} files are missing in {imgs_folder} for {system}.")
 
         system_id = get_system_id(system)
-        
-        for game_name in missing_files:
+
+        for rom in roms:
             screenshot = scrape_screenshot(
-                game_name=game_name, crc="crc", system_id=system_id
+                game_name=rom.name, crc=rom.crc, system_id=system_id
             )
             if screenshot:
-                img_path = imgs_folder / f"{game_name}.png"
+                img_path = imgs_folder / f"{rom.name}.png"
                 with open(img_path, "wb") as img_file:
                     img_file.write(screenshot)
-                print(f"Saved screenshot for {game_name} in {imgs_folder}")
+                print(f"Done scraping {rom.name}.")
 
 
 if __name__ == "__main__":
