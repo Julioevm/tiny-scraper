@@ -2,19 +2,23 @@ import os
 import requests
 import binascii
 import json
+import base64
 from pathlib import Path
+from simple_term_menu import TerminalMenu
 
 from rom import Rom
 
 CONFIG_PATH = "config.json"
 USER = ""
 PASSWORD = ""
+DEVID = ""
+DEVPASSWORD = ""
 
 # List of systems
 systems = ["PSX", "GB", "GBC", "FC", "SFC", "MD"]
 
 def load_config_from_json(filepath) -> bool:
-    global USER, PASSWORD
+    global USER, PASSWORD, DEVID, DEVPASSWORD
     if not os.path.exists(filepath):
         print(f"Config file {filepath} not found.")
         return False
@@ -23,6 +27,8 @@ def load_config_from_json(filepath) -> bool:
         config = json.load(file)
         USER = config.get("user")
         PASSWORD = config.get("password")
+        DEVID = config.get("devid")
+        DEVPASSWORD = config.get("devpassword")
         
     return True
 
@@ -42,36 +48,25 @@ def get_roms(path: str) -> list[Rom]:
     return roms
 
 def prompt_user_for_systems(systems):
-    # Temporal solution for testing
-    selected_systems = []
-    print("Select systems to use (type the number and press Enter, leave empty when finished):")
-    for i, system in enumerate(systems, 1):
-        print(f"{i}. {system}")
+    terminal_menu = TerminalMenu(
+        systems,
+        multi_select=True,
+        show_multi_select_hint=True,
+        title="Select systems to find media:"
+    )
+    menu_entry_indices = terminal_menu.show()
+    print(menu_entry_indices)
+    print(terminal_menu.chosen_menu_entries)
 
-    while True:
-        choice = input("Enter choice: ")
-        if choice.lower() == '':
-            break
-        try:
-            index = int(choice) - 1
-            if 0 <= index < len(systems):
-                if systems[index] not in selected_systems:
-                    selected_systems.append(systems[index])
-                    print(f"{systems[index]} added to selection.")
-                else:
-                    print(f"{systems[index]} is already selected.")
-            else:
-                print("Invalid choice, try again.")
-        except ValueError:
-            print("Invalid input, try again.")
-
-    return selected_systems
+    return terminal_menu.chosen_menu_entries
 
 def get_files_without_extension(folder):
     return [f.stem for f in Path(folder).glob('*') if f.is_file()]
 
 def scrape_screenshot(game_name: str, crc: str = None, system_id: int = 1):
-    url = f"https://api.screenscraper.fr/api2/jeuInfos.php?devid=xxx&devpassword=yyy&softname=tiny-scraper&output=json&ssid={USER}&sspassword={PASSWORD}&crc=50ABC90A&systemeid={system_id}&romtype=rom&romnom={game_name}"
+    decoded_devid = base64.b64decode(DEVID).decode()
+    decoded_devpassword = base64.b64decode(DEVPASSWORD).decode()
+    url = f"https://api.screenscraper.fr/api2/jeuInfos.php?devid={decoded_devid}&devpassword={decoded_devpassword}&softname=tiny-scraper&output=json&ssid={USER}&sspassword={PASSWORD}&crc=50ABC90A&systemeid={system_id}&romtype=rom&romnom={game_name}"
 
     response = requests.get(url)
     if response.status_code == 200:
