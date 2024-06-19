@@ -1,2 +1,5 @@
 
 .venv
+config.json
+Roms
+__pycache__
