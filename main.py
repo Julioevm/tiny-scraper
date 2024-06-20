@@ -96,7 +96,7 @@ def scrape_screenshot(game_name: str, crc: str, system_id: int):
             if screenshot_url:
                 img_response = requests.get(screenshot_url)
 
-                if img_response.headers.get("content-type") == "image/png":
+                if img_response.headers.get("content-type") == "image/png" or "image/jpeg":
                     return img_response.content
                 else:
                     print(f"Invalid image format for {game_name}")
@@ -140,12 +140,14 @@ def main():
             print(f"All files are already present for {system} have images.")
             continue
             
-        print(f"{len(missing_files)} files are missing in {imgs_folder} for {system}.")
+        print(f"{len(missing_files)} files are missing for {system}.")
 
         system_id = get_system_id(system)
         
-        # TODO: only scrape missing files
         for rom in roms:
+            if rom.name not in missing_files:
+                continue
+                
             screenshot = scrape_screenshot(
                 game_name=rom.name, crc=rom.crc, system_id=system_id
             )
