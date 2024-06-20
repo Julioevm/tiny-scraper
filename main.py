@@ -1,3 +1,4 @@
+from _typeshed import StrPath
 import os
 import requests
 import binascii
@@ -36,13 +37,13 @@ def load_config_from_json(filepath) -> bool:
     return True
 
 
-def crc32_from_file(rom: str):
+def crc32_from_file(rom):
     buf = rom.open(mode="rb").read()
     buf = binascii.crc32(buf) & 0xFFFFFFFF
     return "%08X" % buf
 
 
-def get_roms(path: str, system: str) -> list[Rom]:
+def get_roms(path: StrPath, system: str) -> list[Rom]:
     roms = []
     system_extensions = get_system_extension(system)
     for file in os.listdir(path):
@@ -110,7 +111,11 @@ def main():
         return
 
     selected_systems = prompt_user_for_systems(systems)
-
+    
+    if not selected_systems:
+        print("No systems selected. Exiting...")
+        return
+    
     for system in selected_systems:
         system_path = Path("Roms/" + system)
         if not system_path.exists():
