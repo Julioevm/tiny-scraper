@@ -1,4 +1,3 @@
-from _typeshed import StrPath
 import os
 import requests
 import binascii
@@ -43,7 +42,7 @@ def crc32_from_file(rom):
     return "%08X" % buf
 
 
-def get_roms(path: StrPath, system: str) -> list[Rom]:
+def get_roms(path, system: str) -> list[Rom]:
     roms = []
     system_extensions = get_system_extension(system)
     for file in os.listdir(path):
@@ -51,7 +50,8 @@ def get_roms(path: StrPath, system: str) -> list[Rom]:
             name = file[:-4]
             rom = Rom(filename=file, name=name, crc=crc32_from_file(Path(path) / file))
             roms.append(rom)
-            print(f"Added {rom.name} to list.")
+            
+    print(f"Found {len(roms)} roms for {system}.")
     return roms
 
 
@@ -70,6 +70,9 @@ def prompt_user_for_systems(systems):
 def get_files_without_extension(folder):
     return [f.stem for f in Path(folder).glob("*") if f.is_file()]
 
+def get_image_files_without_extension(folder):
+    image_extensions = (".jpg", ".jpeg", ".png")
+    return [f.stem for f in folder.glob("*") if f.suffix.lower() in image_extensions]
 
 def scrape_screenshot(game_name: str, crc: str, system_id: int):
     decoded_devid = base64.b64decode(DEVID).decode()
@@ -111,36 +114,37 @@ def main():
         return
 
     selected_systems = prompt_user_for_systems(systems)
-    
+
     if not selected_systems:
         print("No systems selected. Exiting...")
         return
-    
+
     for system in selected_systems:
         system_path = Path("Roms/" + system)
         if not system_path.exists():
             print(f"Folder for {system} does not exist. Skipping...")
             continue
 
-        # List files in the system folder
-        system_files = get_files_without_extension(system_path)
-        
         roms = get_roms(system_path, system)
 
-        # Check for Imgs folder
         imgs_folder = system_path / "Imgs"
         if not imgs_folder.exists():
             imgs_folder.mkdir()
             imgs_files = []
         else:
-            imgs_files = get_files_without_extension(imgs_folder)
+            imgs_files = get_image_files_without_extension(imgs_folder)
 
-        # TODO: Compare lists and only scrape missing files
-        missing_files = [f for f in system_files if f not in imgs_files]
+        missing_files = [rom.name for rom in roms if rom.name not in imgs_files]
+        
+        if len(missing_files) == 0:
+            print(f"All files are already present for {system} have images.")
+            continue
+            
         print(f"{len(missing_files)} files are missing in {imgs_folder} for {system}.")
 
         system_id = get_system_id(system)
-
+        
+        # TODO: only scrape missing files
         for rom in roms:
             screenshot = scrape_screenshot(
                 game_name=rom.name, crc=rom.crc, system_id=system_id
