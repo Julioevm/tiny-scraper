@@ -15,9 +15,6 @@ DEVID = ""
 DEVPASSWORD = ""
 MEDIA_TYPE = "ss"
 
-# List of systems
-systems = ["PSX", "GB", "GBC", "FC", "SFC", "MD"]
-
 
 def load_config_from_json(filepath) -> bool:
     global USER, PASSWORD, DEVID, DEVPASSWORD, MEDIA_TYPE
@@ -55,7 +52,7 @@ def get_roms(path, system: str) -> list[Rom]:
     return roms
 
 
-def prompt_user_for_systems(systems):
+def prompt_user_for_systems(systems: list[str]):
     terminal_menu = TerminalMenu(
         systems,
         multi_select=True,
@@ -112,8 +109,8 @@ def scrape_screenshot(game_name: str, crc: str, system_id: int):
 def main():
     if not load_config_from_json(CONFIG_PATH):
         return
-
-    selected_systems = prompt_user_for_systems(systems)
+    system_list = [system["name"] for system in systems]
+    selected_systems = prompt_user_for_systems(system_list)
 
     if not selected_systems:
         print("No systems selected. Exiting...")
