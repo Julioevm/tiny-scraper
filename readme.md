@@ -1,25 +1,40 @@
 # Tiny Scraper
 
-A small utility to scrape games for your RGXX devices
+![Platform](https://img.shields.io/badge/platform-Anbernic-orange.svg)
 
-The idea is that this will be run as a RGXX app, and will crape your systems to add missing basic screenshots.
+A small utility to scrape game covers for your RGXX devices
 
-You will need a screenscraper.fr account.
+## Features
 
-## Setup
+- **Easy Downloads:** Download cover media directly onto your Anbernic device.
+- **User-Friendly Interface:** Simple and intuitive interface designed specifically for Anbernic devices.
+- **Wide Compatibility:** Supports various ROM file types and multiple Anbernic models.
 
-create a `config.json` file with the following content.
+## Supported Devices
 
+I've personally only tested it on the RG35xx H
+
+However, it could be compatible with any Anbernic handheld with a Python version >= 3.7. Please, open an issue to confirm the compatibility or to report any problems.
+
+## Installation
+
+To install Tiny Scraper on your Anbernic device, follow these steps:
+
+1. **Download the Latest Release:**
+   - Navigate to the [Releases](https://github.com/Julioevm/tiny-scraper/releases) page and download the latest version of TinyScraper.zip.
+
+2. **Transfer to Device:**
+   - Extract and copy the content of the downloaded zip to the `APPS` directory of your Anbernic. You can copy it in `/mnt/sdcard/Roms/APPS` if you want the app on the SD2 or `/mnt/mmc/Roms/APPS` for the SD1.
+
+3. **Setup config**
+   - create a `config.json` file with the following user and password from https://www.skraper.net.
 ```
 {
     "user": "your_user",
     "password": "your_password"
 }
 ```
+3. **Start Tiny Scraper:**
+   - From the main menu, go to App Center, select Apps and launch Tiny Scraper.
 
 
-## TODOs
-
-- Create .sh files to run from the device
-- Investigate compatibility approach for the device (use Python 2.8 or bundle python 3.8)
-- Interactive menu to select systems from a list
