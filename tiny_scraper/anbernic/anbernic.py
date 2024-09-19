@@ -22,7 +22,7 @@ class Anbernic:
         return self.__sd1_rom_storage_path
 
     def get_sd2_storage_path(self):
-        return self.__sd1_rom_storage_path
+        return self.__sd2_rom_storage_path
     
     def get_sd1_storage_console_path(self, console):
         return os.path.join(self.__sd1_rom_storage_path, self.__rom_folder_mapping[console])
