@@ -92,31 +92,37 @@ def scrape_screenshot(crc: str, game_name: str, system_id: int) -> bytes | None:
 
     print(f"Scraping screenshot for {game_name}...")
     request = Request(url)
-    with urlopen(request) as response:
-        if response.status == 200:
-            try:
-                data = json.loads(response.read())
-                game_data = data.get("response").get("jeu")
+    try:
+        with urlopen(request) as response:
+            if response.status == 200:
+                try:
+                    data = json.loads(response.read())
+                    game_data = data.get("response").get("jeu")
 
-                screenshot_url = ""
-                for media in game_data.get("medias"):
-                    if media["type"] == MEDIA_TYPE:
-                        screenshot_url = media["url"]
-                        break
+                    screenshot_url = ""
+                    for media in game_data.get("medias"):
+                        if media["type"] == MEDIA_TYPE:
+                            screenshot_url = media["url"]
+                            break
 
-                if screenshot_url:
-                    img_request = Request(screenshot_url)
-                    with urlopen(img_request) as img_response:
-                        if img_response.headers.get("Content-Type") == "image/png":
-                            return img_response.read()
-                        else:
-                            print(f"Invalid image format for {game_name}")
-                else:
-                    print(f"No screenshot URL found for {game_name}")
-            except ValueError:
-                print(f"Invalid JSON response for {game_name}")
-        else:
-            print(f"Failed to get screenshot for {game_name}")
-    return None
+                    if screenshot_url:
+                        img_request = Request(screenshot_url)
+                        with urlopen(img_request) as img_response:
+                            if img_response.headers.get("Content-Type") == "image/png":
+                                return img_response.read()
+                            else:
+                                print(f"Invalid image format for {game_name}")
+                    else:
+                        print(f"No screenshot URL found for {game_name}")
+                except ValueError:
+                    print(f"Invalid JSON response for {game_name}")
+            else:
+                print(f"Failed to get screenshot for {game_name}")
+        return None
+                # Any other exception return the error and log the url used
+    except Exception as e:
+        print(f"Error scraping screenshot for {game_name}: {e}")
+        print(f"URL used: {url}")
+        return None
 
 

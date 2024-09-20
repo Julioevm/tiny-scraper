@@ -71,8 +71,10 @@ def draw_circle(position, radius, fill=None, outline='white'):
 	global activeDraw
 	activeDraw.ellipse([position[0], position[1], position[0]+radius, position[1]+radius], fill=fill, outline=outline)
 
-def draw_log(text, fill="Black", outline="black"):
-	draw_rectangle_r([150, 200, 490, 280], 5, fill=fill, outline=outline)
+def draw_log(text, fill="Black", outline="black", width=500):
+	#center in the screen
+	x = (screen_width - width) / 2
+	draw_rectangle_r([x, 200, width, 280], 5, fill=fill, outline=outline)
 	draw_text((175, 230), text)
 
 draw_start()
