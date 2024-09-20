@@ -3,8 +3,8 @@ from PIL import Image, ImageDraw, ImageFont
 import mmap
 import os
 
-fb: any
-mm: any
+fb: int
+mm: mmap.mmap
 screen_width=640
 screen_height=480
 bytes_per_pixel = 4
@@ -53,7 +53,7 @@ def draw_paint():
 
 def draw_clear():
 	global activeDraw
-	activeDraw.rectangle([0, 0, screen_width, screen_height], fill='black')
+	activeDraw.rectangle((0, 0, screen_width, screen_height), fill='black')
 
 def draw_text(position, text, font=15, color='white', **kwargs):
 	global activeDraw

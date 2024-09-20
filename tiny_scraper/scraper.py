@@ -4,6 +4,7 @@ import json
 import base64
 from pathlib import Path
 from urllib.request import urlopen, Request
+import urllib.parse
 from systems import get_system_extension, systems
 from rom import Rom
 
@@ -17,6 +18,7 @@ MEDIA_TYPE = "ss"
 def load_config_from_json(filepath) -> bool:
     global USER, PASSWORD, DEVID, DEVPASSWORD, MEDIA_TYPE
     if not os.path.exists(filepath):
+        print(f"Config file {filepath} not found")
         return False
 
     with open(filepath, "r") as file:
@@ -30,7 +32,7 @@ def load_config_from_json(filepath) -> bool:
     return True
 
 
-def crc32_from_file(rom):
+def get_crc32_from_file(rom):
     buf = rom.open(mode="rb").read()
     buf = binascii.crc32(buf) & 0xFFFFFFFF
     return "%08X" % buf
@@ -38,23 +40,35 @@ def crc32_from_file(rom):
 
 def get_roms(path, system: str) -> list[Rom]:
     roms = []
+    system_path = Path(path) / system
     system_extensions = get_system_extension(system)
-    for file in os.listdir(path):
-        if file.endswith(tuple(system_extensions)):
-            name = file[:-4]
-            rom = Rom(filename=file, name=name, crc=crc32_from_file(Path(path) / file))
-            roms.append(rom)
-            
+    if not system_extensions:
+        print(f"No extensions found for system: {system}")
+        return roms
+
+    for file in os.listdir(system_path):
+        file_path = Path(system_path) / file
+        if file.startswith('.'):
+            continue
+        if file_path.is_file():
+            file_extension = file_path.suffix.lower().lstrip('.')
+            if file_extension in system_extensions:
+                name = file_path.stem
+                rom = Rom(filename=file, name=name)
+                roms.append(rom)
+    
     return roms
 
-def available_systems(rom_path: str) -> list[str] | None:
+# Check that the system folders exist and have roms
+def get_available_systems(roms_path: str) -> list[str]:
     all_systems = [system["name"] for system in systems]
-    # Check that the system folders exist and have roms
     available_systems = []
     for system in all_systems:
-        system_path = Path(rom_path) / system
+        system_path = Path(roms_path) / system
         if system_path.exists() and any(system_path.iterdir()):
             available_systems.append(system)
+            
+    return available_systems
 
 
 def get_files_without_extension(folder):
@@ -67,7 +81,9 @@ def get_image_files_without_extension(folder):
 def scrape_screenshot(crc: str, game_name: str, system_id: int) -> bytes | None:
     decoded_devid = base64.b64decode(DEVID).decode()
     decoded_devpassword = base64.b64decode(DEVPASSWORD).decode()
-    url = f"https://api.screenscraper.fr/api2/jeuInfos.php?devid={decoded_devid}&devpassword={decoded_devpassword}&softname=tiny-scraper&output=json&ssid={USER}&sspassword={PASSWORD}&crc={crc}&systemeid={system_id}&romtype=rom&romnom={game_name}"
+    # URL-encode the game_name parameter
+    encoded_game_name = urllib.parse.quote(game_name)
+    url = f"https://api.screenscraper.fr/api2/jeuInfos.php?devid={decoded_devid}&devpassword={decoded_devpassword}&softname=tiny-scraper&output=json&ssid={USER}&sspassword={PASSWORD}&crc={crc}&systemeid={system_id}&romtype=rom&romnom={encoded_game_name}"
 
     print(f"Scraping screenshot for {game_name}...")
     request = Request(url)

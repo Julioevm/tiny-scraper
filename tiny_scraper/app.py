@@ -5,7 +5,7 @@ import sys
 import time
 from anbernic import anbernic
 
-from scraper import available_systems, get_image_files_without_extension, get_roms, load_config_from_json, scrape_screenshot
+from scraper import get_available_systems, get_crc32_from_file, get_image_files_without_extension, get_roms, load_config_from_json, scrape_screenshot
 from systems import get_system_id
 
 selected_position = 0
@@ -16,7 +16,7 @@ max_elem = 11
 an = anbernic.Anbernic()
 skip_input_check = False
 
-load_config_from_json("config.json")
+load_config_from_json("/mnt/sdcard/Roms/APPS/tiny_scraper/config.json")
 
 def start():
 	load_console_menu()
@@ -42,65 +42,71 @@ def update():
 		load_console_menu()
 
 def load_console_menu():
-	global rom_provider, selected_position, selected_system, current_window, skip_input_check
+	global selected_position, selected_system, current_window, skip_input_check
 
-	console_available = available_systems(an.get_sd_storage_path())
- 
-	if  not console_available:
-		gr.draw_clear()
-		gr.draw_text((320, 240), "No roms found", anchor="mm")
-		gr.draw_paint()
-		time.sleep(3)
-		gr.draw_clear()
-		return
+	available_systems = get_available_systems(an.get_sd_storage_path())
 
-	if input.key("DY"):
-		if input.value == 1:
-			if selected_position < len(console_available) - 1:
-				selected_position += 1
-		elif input.value == -1:
-			if selected_position > 0:
-				selected_position -= 1
-	elif input.key("A"):
-		selected_system = console_available[selected_position][0]
-		current_window = "roms"
-		gr.draw_log("Searching roms...", fill=gr.colorBlue, outline=gr.colorBlueD1)
-		gr.draw_paint()
-		skip_input_check = True
-		return
+	if len(available_systems) > 0:
+		if input.key("DY"):
+			if input.value == 1:
+				if selected_position < len(available_systems) - 1:
+					selected_position += 1
+			elif input.value == -1:
+				if selected_position > 0:
+					selected_position -= 1
+		elif input.key("A"):
+			selected_system = available_systems[selected_position]
+			current_window = "roms"
+			gr.draw_log("Checking existing media...", fill=gr.colorBlue, outline=gr.colorBlueD1)
+			gr.draw_paint()
+			skip_input_check = True
+			return
+
+	if input.key("Y"):
+		an.switch_sd_storage()
 
 	gr.draw_clear()
 	
 	gr.draw_rectangle_r([10, 40, 630, 440], 15, fill=gr.colorGrayD2, outline=None)
 	gr.draw_text((320, 20), "Tiny Scraper", anchor="mm")
 
-	start_idx = int(selected_position / max_elem) * max_elem
-	end_idx = start_idx + max_elem
-	for i, c in enumerate(console_available[start_idx:end_idx]):
-		row_list(c[0], (20, 50 + (i * 35)), 600, i == (selected_position % max_elem))
-
-	button_circle((30, 460), "A", "Select")
+	if len(available_systems) > 1:
+		start_idx = int(selected_position / max_elem) * max_elem
+		end_idx = start_idx + max_elem
+		for i, system in enumerate(available_systems[start_idx:end_idx]):
+			row_list(system, (20, 50 + (i * 35)), 600, i == (selected_position % max_elem))
+		button_circle((30, 460), "A", "Select")
+	else:
+		gr.draw_text((320, 240), f"No roms found in SD {an.get_sd_storage()}", anchor="mm")
+		
+	
 	button_circle((133, 460), "M", "Exit")
+	button_circle((355, 460), "Y", "SD: {}".format(an.get_sd_storage()))
 
 	gr.draw_paint()
 
 def load_roms_menu():
-	global rom_provider, selected_position, current_window, roms_selected_position, skip_input_check, selected_system
+	global selected_position, current_window, roms_selected_position, skip_input_check, selected_system
 
 	roms_list = get_roms(an.get_sd_storage_path(), selected_system)
-
+	system_path = Path(an.get_sd_storage_path()) / selected_system
 	imgs_folder = Path(f"{an.get_sd_storage_path()}/{selected_system}/Imgs")
+
 	if not imgs_folder.exists():
 		imgs_folder.mkdir()
 		imgs_files = []
 	else:
 		imgs_files = get_image_files_without_extension(imgs_folder)
 
-	roms_without_image = [rom.name for rom in roms_list if rom.name not in imgs_files]
+	roms_without_image = [rom for rom in roms_list if rom.name not in imgs_files]
 	system_id = get_system_id(selected_system)
 
-	if len(roms_list) < 1:
+	if len(roms_without_image) < 1:
 		current_window = "console"
+		selected_system = ""
+		gr.draw_log("No roms missing media found...", fill=gr.colorBlue, outline=gr.colorBlueD1)
+		gr.draw_paint()
+		time.sleep(3)
 		gr.draw_clear()
 		return
 
@@ -108,15 +114,14 @@ def load_roms_menu():
 		current_window = "console"
 		selected_system = ""
 		gr.draw_clear()
-		# gr.draw_paint()
 		roms_selected_position = 0
 		skip_input_check = True
 		return
 	elif input.key("A"):
 		gr.draw_log("Scraping...", fill=gr.colorBlue, outline=gr.colorBlueD1)
 		gr.draw_paint()
-		rom = roms_list[roms_selected_position]
-		
+		rom = roms_without_image[roms_selected_position]
+		rom.set_crc(get_crc32_from_file(system_path / rom.filename))
 		screenshot = scrape_screenshot(
                 game_name=rom.name, crc=rom.crc, system_id=system_id
             )
@@ -185,17 +190,15 @@ def load_roms_menu():
 	gr.draw_clear()
 
 	gr.draw_rectangle_r([10, 40, 630, 440], 15, fill=gr.colorGrayD2, outline=None)
-	gr.draw_text((320, 20), "Tiny Scraper", anchor="mm")
-	gr.draw_text((320, 30), f"Console: {selected_system}, Roms: {len(roms_list)}", anchor="mm")
-	gr.draw_text((320, 40), f"Roms without image: {len(roms_without_image)}", anchor="mm")
+	gr.draw_text((320, 10), f"{selected_system}: Roms: {len(roms_list)} Missing media: {len(roms_without_image)}", anchor="mm")
 	
 
 	start_idx = int(roms_selected_position / max_elem) * max_elem
 	end_idx = start_idx + max_elem
-	for i, rom in enumerate(roms_list[start_idx:end_idx]):
-		row_list(rom.name[0] if len(rom.name[0]) <= 50 else rom.name[0][:48] + "...", (20, 50 + (i * 35)), 600, i == (roms_selected_position % max_elem))
+	for i, rom in enumerate(roms_without_image[start_idx:end_idx]):
+		row_list(rom.name if len(rom.name) <= 50 else rom.name[:48] + "...", (20, 50 + (i * 35)), 600, i == (roms_selected_position % max_elem))
 	
-	button_circle((30, 460), "Start", "Download All")
+	button_rectangle((30, 460), "Start", "D. All")
 	button_circle((170, 460), "A", "Download")
 	button_circle((260, 460), "B", "Back")
 	button_circle((355, 460), "Y", "SD: {}".format(an.get_sd_storage()))
@@ -203,11 +206,16 @@ def load_roms_menu():
 
 	gr.draw_paint()
 
-def row_list(text, pos, width, selected):
+def row_list(text: str, pos: tuple[int, int], width: int, selected: bool):
 	gr.draw_rectangle_r([pos[0], pos[1], pos[0]+width, pos[1]+32], 5, fill=(gr.colorBlue if selected else gr.colorGrayL1))
 	gr.draw_text((pos[0]+5, pos[1] + 5), text)
 
-def button_circle(pos, button, text):
+def button_circle(pos: tuple[int, int], button, text: str):
 	gr.draw_circle(pos, 15, fill=gr.colorBlueD1)
 	gr.draw_text(pos, button, anchor="mm")
 	gr.draw_text((pos[0] + 20, pos[1]), text, font=13, anchor="lm")
+
+def button_rectangle(pos: tuple[int, int], button, text: str):
+	gr.draw_rectangle_r([pos[0], pos[1], pos[0]+40, pos[1]+30], 5, fill=gr.colorGrayL1)
+	gr.draw_text((pos[0]+5, pos[1] + 5), button)
+	gr.draw_text((pos[0] + 50, pos[1]), text, font=13, anchor="lm")
