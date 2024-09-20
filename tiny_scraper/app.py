@@ -136,10 +136,14 @@ def load_roms_menu():
 		time.sleep(3)
 		exit_menu = True
 	elif input.key("START"):
-		gr.draw_log("Scraping...", fill=gr.colorBlue, outline=gr.colorBlueD1)
+		progress = 0
+		success = 0
+		failure = 0
+		gr.draw_log(f"Scraping {progress} of {roms_without_image}", fill=gr.colorBlue, outline=gr.colorBlueD1)
 		gr.draw_paint()
-		for rom in roms_list:
+		for rom in roms_without_image:
 			if rom.name not in imgs_files:
+				rom.set_crc(get_crc32_from_file(system_path / rom.filename))
 				screenshot = scrape_screenshot(
 					game_name=rom.name, crc=rom.crc, system_id=system_id
 				)
@@ -150,7 +154,7 @@ def load_roms_menu():
 						print(f"Done scraping {rom.name}. Saved file to {img_path}")
 				else :
 					print(f"Failed to get screenshot for {rom.name}")
-		gr.draw_log("Scraping completed!", fill=gr.colorBlue, outline=gr.colorBlueD1)
+		gr.draw_log(f"Scraping {progress} roms completed! Success: {success} Errors: {failure}", fill=gr.colorBlue, outline=gr.colorBlueD1)
 		gr.draw_paint()
 		time.sleep(3)
 		exit_menu = True
