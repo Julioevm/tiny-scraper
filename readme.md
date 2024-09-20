@@ -27,7 +27,7 @@ To install Tiny Scraper on your Anbernic device, follow these steps:
    - Extract and copy the content of the downloaded zip to the `APPS` directory of your Anbernic. You can copy it in `/mnt/sdcard/Roms/APPS` if you want the app on the SD2 or `/mnt/mmc/Roms/APPS` for the SD1.
 
 3. **Setup config**
-   - create a `config.json` file with the following user and password from https://www.skraper.net.
+   - create a `config.json` file inside the `tiny_scraper` folder with a valid user and password from https://www.skraper.net. Register if you haven't.
 ```
 {
     "user": "your_user",
@@ -38,3 +38,6 @@ To install Tiny Scraper on your Anbernic device, follow these steps:
    - From the main menu, go to App Center, select Apps and launch Tiny Scraper.
 
 
+## Troubleshooting
+
+Any issue should be logged in the log.txt file inside the `tiny_scraper` folder. Open an issue and share its contents for help!
