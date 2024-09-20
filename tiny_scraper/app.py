@@ -16,9 +16,10 @@ max_elem = 11
 an = Anbernic()
 skip_input_check = False
 
-load_config_from_json("/mnt/sdcard/Roms/APPS/tiny_scraper/config.json")
 
-def start():
+def start(config_path: str):
+	print("Starting Tiny Scraper...")
+	load_config_from_json(config_path)
 	load_console_menu()
 
 def update():
@@ -32,6 +33,7 @@ def update():
 
 	if input.key("MENUF"):
 		gr.draw_end()
+		print("Exiting Tiny Scraper...")
 		sys.exit()
 	
 	if current_window == "console":

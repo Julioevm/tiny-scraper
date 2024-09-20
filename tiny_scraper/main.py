@@ -1,8 +1,10 @@
+import sys
 import app
 
 def main():
     
-    app.start()
+    path = sys.argv[1]
+    app.start(path)
 
     while True:
         app.update()
