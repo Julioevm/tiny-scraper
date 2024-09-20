@@ -9,8 +9,8 @@ from systems import get_system_extension, systems
 
 USER = ""
 PASSWORD = ""
-DEVID = ""
-DEVPASSWORD = ""
+DEVID = "ZGpyb2R0Yw=="
+DEVPASSWORD = "ZGlGYXkzNVdFbEw="
 MEDIA_TYPE = "ss"
 
 class Rom:
@@ -23,7 +23,7 @@ class Rom:
         self.crc = crc
 
 def load_config_from_json(filepath) -> bool:
-    global USER, PASSWORD, DEVID, DEVPASSWORD, MEDIA_TYPE
+    global USER, PASSWORD, MEDIA_TYPE
     if not os.path.exists(filepath):
         print(f"Config file {filepath} not found")
         return False
@@ -32,8 +32,6 @@ def load_config_from_json(filepath) -> bool:
         config = json.load(file)
         USER = config.get("user")
         PASSWORD = config.get("password")
-        DEVID = config.get("devid")
-        DEVPASSWORD = config.get("devpassword")
         MEDIA_TYPE = config.get("media_type") or "ss"
 
     return True
