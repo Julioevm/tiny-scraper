@@ -75,13 +75,13 @@ def load_console_menu():
 		end_idx = start_idx + max_elem
 		for i, system in enumerate(available_systems[start_idx:end_idx]):
 			row_list(system, (20, 50 + (i * 35)), 600, i == (selected_position % max_elem))
-		button_circle((30, 460), "A", "Select")
+		button_circle((30, 450), "A", "Select")
 	else:
 		gr.draw_text((320, 240), f"No roms found in SD {an.get_sd_storage()}", anchor="mm")
 		
 	
-	button_circle((133, 460), "M", "Exit")
-	button_circle((355, 460), "Y", "SD: {}".format(an.get_sd_storage()))
+	button_circle((133, 450), "M", "Exit")
+	button_circle((355, 450), "Y", "SD: {}".format(an.get_sd_storage()))
 
 	gr.draw_paint()
 
@@ -205,11 +205,11 @@ def load_roms_menu():
 	for i, rom in enumerate(roms_without_image[start_idx:end_idx]):
 		row_list(rom.name if len(rom.name) <= 50 else rom.name[:48] + "...", (20, 50 + (i * 35)), 600, i == (roms_selected_position % max_elem))
 	
-	button_rectangle((30, 460), "Start", "D. All")
-	button_circle((170, 460), "A", "Download")
-	button_circle((300, 460), "B", "Back")
-	button_circle((390, 460), "Y", "SD: {}".format(an.get_sd_storage()))
-	button_circle((490, 460), "M", "Exit")
+	button_rectangle((30, 450), "Start", "D. All")
+	button_circle((170, 450), "A", "Download")
+	button_circle((300, 450), "B", "Back")
+	button_circle((390, 450), "Y", "SD: {}".format(an.get_sd_storage()))
+	button_circle((480, 450), "M", "Exit")
 
 	gr.draw_paint()
 
@@ -218,11 +218,11 @@ def row_list(text: str, pos: tuple[int, int], width: int, selected: bool):
 	gr.draw_text((pos[0]+5, pos[1] + 5), text)
 
 def button_circle(pos: tuple[int, int], button, text: str):
-	gr.draw_circle(pos, 15, fill=gr.colorBlueD1)
-	gr.draw_text(pos, button, anchor="mm")
-	gr.draw_text((pos[0] + 20, pos[1]), text, font=13, anchor="lm")
+	gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
+	gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
+	gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=13, anchor="lm")
 
 def button_rectangle(pos: tuple[int, int], button, text: str):
-	gr.draw_rectangle([pos[0], pos[1], pos[0]+40, pos[1]+30], fill=gr.colorGrayL1)
-	gr.draw_text((pos[0]+5, pos[1] + 5), button)
-	gr.draw_text((pos[0] + 50, pos[1]), text, font=13, anchor="lm")
+	gr.draw_rectangle_r((pos[0], pos[1], pos[0]+60, pos[1]+25), 5, fill=gr.colorGrayL1)
+	gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
+	gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=13, anchor="lm")

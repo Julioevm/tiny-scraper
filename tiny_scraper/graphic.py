@@ -69,7 +69,7 @@ def draw_rectangle_r(position, radius, fill=None, outline=None):
 
 def draw_circle(position, radius, fill=None, outline='white'):
 	global activeDraw
-	activeDraw.ellipse([position[0]-radius, position[1]-radius, position[0]+radius, position[1]+radius], fill=fill, outline=outline)
+	activeDraw.ellipse([position[0], position[1], position[0]+radius, position[1]+radius], fill=fill, outline=outline)
 
 def draw_log(text, fill="Black", outline="black"):
 	draw_rectangle_r([150, 200, 490, 280], 5, fill=fill, outline=outline)
