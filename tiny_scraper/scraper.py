@@ -6,7 +6,6 @@ from pathlib import Path
 from urllib.request import urlopen, Request
 import urllib.parse
 from systems import get_system_extension, systems
-from rom import Rom
 
 USER = ""
 PASSWORD = ""
@@ -14,6 +13,14 @@ DEVID = ""
 DEVPASSWORD = ""
 MEDIA_TYPE = "ss"
 
+class Rom:
+    def __init__(self, name, filename, crc = ""):
+        self.name = name
+        self.filename = filename
+        self.crc = crc
+
+    def set_crc(self, crc):
+        self.crc = crc
 
 def load_config_from_json(filepath) -> bool:
     global USER, PASSWORD, DEVID, DEVPASSWORD, MEDIA_TYPE

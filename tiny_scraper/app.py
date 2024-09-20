@@ -3,7 +3,7 @@ import graphic as gr
 import input
 import sys
 import time
-from anbernic import anbernic
+from anbernic import Anbernic
 
 from scraper import get_available_systems, get_crc32_from_file, get_image_files_without_extension, get_roms, load_config_from_json, scrape_screenshot
 from systems import get_system_id
@@ -13,7 +13,7 @@ roms_selected_position = 0
 selected_system = ""
 current_window = "console"
 max_elem = 11
-an = anbernic.Anbernic()
+an = Anbernic()
 skip_input_check = False
 
 load_config_from_json("/mnt/sdcard/Roms/APPS/tiny_scraper/config.json")
@@ -87,7 +87,8 @@ def load_console_menu():
 
 def load_roms_menu():
 	global selected_position, current_window, roms_selected_position, skip_input_check, selected_system
-
+	
+	exit_menu = False
 	roms_list = get_roms(an.get_sd_storage_path(), selected_system)
 	system_path = Path(an.get_sd_storage_path()) / selected_system
 	imgs_folder = Path(f"{an.get_sd_storage_path()}/{selected_system}/Imgs")
@@ -106,17 +107,12 @@ def load_roms_menu():
 		selected_system = ""
 		gr.draw_log("No roms missing media found...", fill=gr.colorBlue, outline=gr.colorBlueD1)
 		gr.draw_paint()
-		time.sleep(3)
+		time.sleep(2)
 		gr.draw_clear()
-		return
+		exit_menu = True
 
 	if input.key("B"):
-		current_window = "console"
-		selected_system = ""
-		gr.draw_clear()
-		roms_selected_position = 0
-		skip_input_check = True
-		return
+		exit_menu = True
 	elif input.key("A"):
 		gr.draw_log("Scraping...", fill=gr.colorBlue, outline=gr.colorBlueD1)
 		gr.draw_paint()
@@ -129,12 +125,14 @@ def load_roms_menu():
 			img_path = f"{imgs_folder}/{rom.name}.png"
 			with open(img_path, "wb") as img_file:
 				img_file.write(screenshot)
-		if screenshot:
-			gr.draw_log("Scraping completed!", fill=gr.colorBlue, outline=gr.colorBlueD1)
+				gr.draw_log("Scraping completed!", fill=gr.colorBlue, outline=gr.colorBlueD1)
+				print(f"Done scraping {rom.name}. Saved file to {img_path}")
 		else:
 			gr.draw_log("Scraping failed!", fill=gr.colorBlue, outline=gr.colorBlueD1)
+			print(f"Failed to get screenshot for {rom.name}")
 		gr.draw_paint()
 		time.sleep(3)
+		exit_menu = True
 	elif input.key("START"):
 		gr.draw_log("Scraping...", fill=gr.colorBlue, outline=gr.colorBlueD1)
 		gr.draw_paint()
@@ -147,12 +145,13 @@ def load_roms_menu():
 					img_path = f"{imgs_folder}/{rom.name}.png"
 					with open(img_path, "wb") as img_file:
 						img_file.write(screenshot)
-					print(f"Done scraping {rom.name}.")
+						print(f"Done scraping {rom.name}. Saved file to {img_path}")
 				else :
 					print(f"Failed to get screenshot for {rom.name}")
 		gr.draw_log("Scraping completed!", fill=gr.colorBlue, outline=gr.colorBlueD1)
 		gr.draw_paint()
 		time.sleep(3)
+		exit_menu = True
 	elif input.key("Y"):
 		an.switch_sd_storage()
 	elif input.key("DY"):
@@ -187,10 +186,18 @@ def load_roms_menu():
 			else:
 				roms_selected_position = len(roms_list) - 1
 
+	if exit_menu:
+		current_window = "console"
+		selected_system = ""
+		gr.draw_clear()
+		roms_selected_position = 0
+		skip_input_check = True
+		return
+
 	gr.draw_clear()
 
 	gr.draw_rectangle_r([10, 40, 630, 440], 15, fill=gr.colorGrayD2, outline=None)
-	gr.draw_text((320, 10), f"{selected_system}: Roms: {len(roms_list)} Missing media: {len(roms_without_image)}", anchor="mm")
+	gr.draw_text((320, 10), f"{selected_system} - Roms: {len(roms_list)} Missing media: {len(roms_without_image)}", anchor="mm")
 	
 
 	start_idx = int(roms_selected_position / max_elem) * max_elem
@@ -200,9 +207,9 @@ def load_roms_menu():
 	
 	button_rectangle((30, 460), "Start", "D. All")
 	button_circle((170, 460), "A", "Download")
-	button_circle((260, 460), "B", "Back")
-	button_circle((355, 460), "Y", "SD: {}".format(an.get_sd_storage()))
-	button_circle((460, 460), "M", "Exit")
+	button_circle((300, 460), "B", "Back")
+	button_circle((390, 460), "Y", "SD: {}".format(an.get_sd_storage()))
+	button_circle((490, 460), "M", "Exit")
 
 	gr.draw_paint()
 
@@ -216,6 +223,6 @@ def button_circle(pos: tuple[int, int], button, text: str):
 	gr.draw_text((pos[0] + 20, pos[1]), text, font=13, anchor="lm")
 
 def button_rectangle(pos: tuple[int, int], button, text: str):
-	gr.draw_rectangle_r([pos[0], pos[1], pos[0]+40, pos[1]+30], 5, fill=gr.colorGrayL1)
+	gr.draw_rectangle([pos[0], pos[1], pos[0]+40, pos[1]+30], fill=gr.colorGrayL1)
 	gr.draw_text((pos[0]+5, pos[1] + 5), button)
 	gr.draw_text((pos[0] + 50, pos[1]), text, font=13, anchor="lm")
