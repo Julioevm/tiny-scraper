@@ -12,7 +12,8 @@ A small utility to scrape game covers for your RGXX devices
 
 ## Supported Devices
 
-I've personally only tested it on the RG35xx H
+I've personally only tested it on the RG35XX H
+RG40XXV Reportedly working.
 
 However, it could be compatible with any Anbernic handheld with a Python version >= 3.7. Please, open an issue to confirm the compatibility or to report any problems.
 
@@ -31,13 +32,19 @@ To install Tiny Scraper on your Anbernic device, follow these steps:
 ```
 {
     "user": "your_user",
-    "password": "your_password"
+    "password": "your_password",
+    "media_type": "sstitle"
 }
 ```
+
+- Media type let's you select the type of media to download: The main options I suggest are "ss" for a game screenshot, "sstitle", for the title screen or "box-2d" for a box, "mixrbv1" for a mix of screenshot, wheel and so on. For more options check the screenscraper.fr documentation.
+
 3. **Start Tiny Scraper:**
    - From the main menu, go to App Center, select Apps and launch Tiny Scraper.
 
 
 ## Troubleshooting
+
+Old version of stock OS might cause issues. V 1.0.3 (20240511) hs been reported to miss some necessary libraries: No module named 'PIL' try to update in this case.
 
 Any issue should be logged in the log.txt file inside the `tiny_scraper` folder. Open an issue and share its contents for help!
