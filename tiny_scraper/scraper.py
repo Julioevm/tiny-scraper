@@ -9,18 +9,20 @@ from systems import get_system_extension, systems
 
 USER = ""
 PASSWORD = ""
-DEVID = "ZGpyb2R0Yw=="
-DEVPASSWORD = "ZGlGYXkzNVdFbEw="
+DEVID = "cmVhdmVu"
+DEVPASSWORD = "MDZXZUY5bTBldWs="
 MEDIA_TYPE = "ss"
 
+
 class Rom:
-    def __init__(self, name, filename, crc = ""):
+    def __init__(self, name, filename, crc=""):
         self.name = name
         self.filename = filename
         self.crc = crc
 
     def set_crc(self, crc):
         self.crc = crc
+
 
 def load_config_from_json(filepath) -> bool:
     global USER, PASSWORD, MEDIA_TYPE
@@ -53,16 +55,17 @@ def get_roms(path, system: str) -> list[Rom]:
 
     for file in os.listdir(system_path):
         file_path = Path(system_path) / file
-        if file.startswith('.'):
+        if file.startswith("."):
             continue
         if file_path.is_file():
-            file_extension = file_path.suffix.lower().lstrip('.')
+            file_extension = file_path.suffix.lower().lstrip(".")
             if file_extension in system_extensions:
                 name = file_path.stem
                 rom = Rom(filename=file, name=name)
                 roms.append(rom)
-    
+
     return roms
+
 
 # Check that the system folders exist and have roms
 def get_available_systems(roms_path: str) -> list[str]:
@@ -72,16 +75,18 @@ def get_available_systems(roms_path: str) -> list[str]:
         system_path = Path(roms_path) / system
         if system_path.exists() and any(system_path.iterdir()):
             available_systems.append(system)
-            
+
     return available_systems
 
 
 def get_files_without_extension(folder):
     return [f.stem for f in Path(folder).glob("*") if f.is_file()]
 
+
 def get_image_files_without_extension(folder):
     image_extensions = (".jpg", ".jpeg", ".png")
     return [f.stem for f in folder.glob("*") if f.suffix.lower() in image_extensions]
+
 
 def scrape_screenshot(crc: str, game_name: str, system_id: int) -> bytes | None:
     decoded_devid = base64.b64decode(DEVID).decode()
@@ -119,10 +124,8 @@ def scrape_screenshot(crc: str, game_name: str, system_id: int) -> bytes | None:
             else:
                 print(f"Failed to get screenshot for {game_name}")
         return None
-                # Any other exception return the error and log the url used
+    # Any other exception return the error and log the url used
     except Exception as e:
         print(f"Error scraping screenshot for {game_name}: {e}")
         print(f"URL used: {url}")
         return None
-
-
