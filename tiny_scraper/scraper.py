@@ -3,6 +3,7 @@ import binascii
 import json
 import base64
 from pathlib import Path
+import ssl
 from urllib.request import urlopen, Request
 import urllib.parse
 from systems import get_system_extension, systems
@@ -89,6 +90,10 @@ def get_image_files_without_extension(folder):
 
 
 def scrape_screenshot(crc: str, game_name: str, system_id: int) -> bytes | None:
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
     decoded_devid = base64.b64decode(DEVID).decode()
     decoded_devpassword = base64.b64decode(DEVPASSWORD).decode()
     # URL-encode the game_name parameter
@@ -98,7 +103,7 @@ def scrape_screenshot(crc: str, game_name: str, system_id: int) -> bytes | None:
     print(f"Scraping screenshot for {game_name}...")
     request = Request(url)
     try:
-        with urlopen(request) as response:
+        with urlopen(request, context=ctx) as response:
             if response.status == 200:
                 try:
                     data = json.loads(response.read())
@@ -112,7 +117,7 @@ def scrape_screenshot(crc: str, game_name: str, system_id: int) -> bytes | None:
 
                     if screenshot_url:
                         img_request = Request(screenshot_url)
-                        with urlopen(img_request) as img_response:
+                        with urlopen(img_request, context=ctx) as img_response:
                             if img_response.headers.get("Content-Type") == "image/png":
                                 return img_response.read()
                             else:
