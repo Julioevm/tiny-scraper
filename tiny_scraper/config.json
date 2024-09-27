@@ -1,5 +1,6 @@
 {
     "user": "your_user",
     "password": "your_password",
-    "media_type": "ss"
+    "media_type": "ss",
+    "region": "wor"
 }
