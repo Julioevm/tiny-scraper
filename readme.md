@@ -38,7 +38,7 @@ To install Tiny Scraper on your Anbernic device, follow these steps:
 }
 ```
 
-- Media type let's you select the type of media to download: The main options I suggest are `ss` for a game screenshot, `sstitle`, for the title screen or `box-2D` for a box, `mixrbv1` for a mix of screenshot, wheel and so on. For more options check the screenscraper.fr documentation. Keep the capital letters.
+- Media type let's you select the type of media to download: The main options I suggest are `ss` for a game screenshot, `sstitle`, for the title screen or `box-2D` or `box-3D` for a box, `mixrbv1` for a mix of screenshot, wheel and so on. For more options check the screenscraper.fr documentation. Keep the capital letters.
 - Region let's you prioritize the region of the media to download. Some games have different covers for Japan, some for Europe and some for the rest of the world. If the region is not specified it will prioritize the world covers. Valid regions are `wor`, `jp`, `eu`, `asi`, `kr`, `ss`, `us`.
 
 3. **Start Tiny Scraper:**
