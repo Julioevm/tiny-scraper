@@ -41,10 +41,13 @@ class Scraper:
             self.region = config.get("region") or "wor"
         return True
 
-    def get_crc32_from_file(self, rom):
-        buf = rom.open(mode="rb").read()
-        buf = binascii.crc32(buf) & 0xFFFFFFFF
-        return "%08X" % buf
+    def get_crc32_from_file(self, rom, chunk_size = 65536):
+        crc32 = 0
+        with rom.open(mode="rb") as file:
+            while chunk := file.read(chunk_size):
+                crc32 = binascii.crc32(chunk, crc32)
+        crc32 = crc32 & 0xFFFFFFFF
+        return "%08X" % crc32
 
     def get_files_without_extension(self, folder):
         return [f.stem for f in Path(folder).glob("*") if f.is_file()]
