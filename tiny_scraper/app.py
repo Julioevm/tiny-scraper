@@ -116,7 +116,7 @@ def load_roms_menu() -> None:
     else:
         imgs_files = scraper.get_image_files_without_extension(imgs_folder)
 
-    roms_without_image = [rom for rom in roms_list if rom.name not in imgs_files]
+    roms_without_image = list(set([rom for rom in roms_list if rom.name not in imgs_files]))
     system_id = get_system_id(selected_system)
 
     if len(roms_without_image) < 1:
