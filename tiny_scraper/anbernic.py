@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 class Anbernic:
@@ -17,6 +18,7 @@ class Anbernic:
             "N64": "N64",
         }
         self.__current_sd = 2
+
 
     def get_sd1_storage_path(self):
         return self.__sd1_rom_storage_path
@@ -44,7 +46,8 @@ class Anbernic:
             self.__current_sd = 1
     
     def get_sd_storage_path(self):
-        if self.__current_sd == 1:
+        if self.__current_sd == 1 or not any(Path("/mnt/sdcard").iterdir()):
+            self.__current_sd = 1
             return self.get_sd1_storage_path()
         else:
             return self.get_sd2_storage_path()
