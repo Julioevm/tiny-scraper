@@ -1,16 +1,24 @@
 from fcntl import ioctl
 from PIL import Image, ImageDraw, ImageFont
+from main import hw_info
 import mmap
 import os
 
 fb: int
 mm: mmap.mmap
-screen_width = 640
-screen_height = 480
+
+screen_resolutions = {
+    1: (720, 720),
+    2: (720, 480),
+}
+
+screen_width, screen_height = screen_resolutions.get(hw_info, (640, 480))
 bytes_per_pixel = 4
 screen_size = screen_width * screen_height * bytes_per_pixel
+fb_screeninfo = None
 
 fontFile = {}
+fontFile[17] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 17)
 fontFile[15] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 15)
 fontFile[13] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 13)
 fontFile[11] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 11)
@@ -24,11 +32,26 @@ activeImage: Image.Image
 activeDraw: ImageDraw.ImageDraw
 
 
+def get_fb_screeninfo():
+    global fb_screeninfo
+    if hw_info == 3:
+        fb_screeninfo = b'\xe0\x01\x00\x00\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    else:
+        fb_fd = os.open("/dev/fb0", os.O_RDWR)
+        try:
+            fb_info = bytearray(160)
+            ioctl(fb_fd, 0x4600, fb_info)
+            fb_screeninfo = bytes(fb_info)
+        finally:
+            #print(fb_screeninfo)
+            os.close(fb_fd)
+    return fb_screeninfo
+
 def screen_reset():
     ioctl(
         fb,
         0x4601,
-        b"\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+        fb_screeninfo,
     )
     ioctl(fb, 0x4611, 0)
 
@@ -45,7 +68,7 @@ def draw_end():
     os.close(fb)
 
 
-def crate_image():
+def create_image():
     image = Image.new("RGBA", (screen_width, screen_height), color="black")
     return image
 
@@ -58,8 +81,13 @@ def draw_active(image):
 
 def draw_paint():
     global activeImage
-    mm.seek(0)
-    mm.write(activeImage.tobytes())
+    if hw_info == 3:
+        img = activeImage.rotate(90, expand=True)
+        mm.seek(0)
+        mm.write(img.tobytes())
+    else:
+        mm.seek(0)
+        mm.write(activeImage.tobytes())
 
 
 def draw_clear():
@@ -104,8 +132,10 @@ def draw_log(text, fill="Black", outline="black", width=500):
     draw_text((text_x, text_y), text, anchor="mm")  # Use middle-middle anchor
 
 
+fb_screeninfo = get_fb_screeninfo()
+
 draw_start()
 screen_reset()
 
-imgMain = crate_image()
+imgMain = create_image()
 draw_active(imgMain)
