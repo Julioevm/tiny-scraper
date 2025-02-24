@@ -8,8 +8,8 @@ fb: int
 mm: mmap.mmap
 
 screen_resolutions = {
-    1: (720, 720),
-    2: (720, 480),
+    1: (720, 720, 18),
+    2: (720, 480, 11)
 }
 
 screen_width, screen_height = screen_resolutions.get(hw_info, (640, 480))
