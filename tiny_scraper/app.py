@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
 from main import hw_info, system_lang
+from graphic import screen_resolutions
 from language import Translator
 import graphic as gr
 import input
@@ -20,12 +21,7 @@ an = Anbernic()
 scraper = Scraper()
 skip_input_check = False
 
-screen_size = {
-    1: (720, 720, 18),
-    2: (720, 480, 11)
-}
-
-x_size, y_size ,max_elem = screen_size.get(hw_info, (640, 480, 11))
+x_size, y_size ,max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
 
 button_x = x_size - 110
 button_y = y_size - 30
@@ -45,7 +41,7 @@ def start(config_path: str) -> None:
     print("Starting Tiny Scraper...")
     if not is_connected():
         gr.draw_log(
-            f"{translator.translate('no_network')}", fill=gr.colorBlue, outline=gr.colorBlueD1
+            f"{translator.translate('No internet connection')}", fill=gr.colorBlue, outline=gr.colorBlueD1
         )
         gr.draw_paint()
         time.sleep(3)
@@ -92,7 +88,7 @@ def load_console_menu() -> None:
             selected_system = available_systems[selected_position]
             current_window = "roms"
             gr.draw_log(
-                f"{translator.translate('log_01')}", fill=gr.colorBlue, outline=gr.colorBlueD1
+                f"{translator.translate('Checking existing media...')}", fill=gr.colorBlue, outline=gr.colorBlueD1
             )
             gr.draw_paint()
             skip_input_check = True
@@ -106,7 +102,7 @@ def load_console_menu() -> None:
     gr.draw_clear()
 
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayD2, outline=None)
-    gr.draw_text((x_size / 2, 20), f"{translator.translate('title_label_01')}", font=17, anchor="mm")
+    gr.draw_text((x_size / 2, 20), f"{translator.translate('Tiny Scraper')}", font=17, anchor="mm")
 
     if len(available_systems) > 1:
         start_idx = int(selected_position / max_elem) * max_elem
@@ -115,14 +111,14 @@ def load_console_menu() -> None:
             row_list(
                 system, (20, 50 + (i * 35)), x_size - 40, i == (selected_position % max_elem)
             )
-        button_circle((30, button_y), "A", f"{translator.translate('button_label_01')}")
+        button_circle((30, button_y), "A", f"{translator.translate('Select')}")
     else:
         gr.draw_text(
-            (x_size / 2, y_size / 2), f"{translator.translate('message_01')} {an.get_sd_storage()}", anchor="mm"
+            (x_size / 2, y_size / 2), f"{translator.translate('No roms found in TF')} {an.get_sd_storage()}", anchor="mm"
         )
 
     button_circle((button_x-110, button_y), "Y", f"TF: {an.get_sd_storage()}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('button_label_03')}")
+    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -154,7 +150,7 @@ def load_roms_menu() -> None:
         current_window = "console"
         selected_system = ""
         gr.draw_log(
-            f"{translator.translate('log_02')}", fill=gr.colorBlue, outline=gr.colorBlueD1
+            f"{translator.translate('No roms missing media found...')}", fill=gr.colorBlue, outline=gr.colorBlueD1
         )
         gr.draw_paint()
         time.sleep(2)
@@ -164,7 +160,7 @@ def load_roms_menu() -> None:
     if input.key("B"):
         exit_menu = True
     elif input.key("A"):
-        gr.draw_log(f"{translator.translate('log_03')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
+        gr.draw_log(f"{translator.translate('Scraping...')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
         gr.draw_paint()
         rom = roms_without_image[roms_selected_position]
         rom.set_crc(scraper.get_crc32_from_file(system_path / rom.filename))
@@ -175,11 +171,11 @@ def load_roms_menu() -> None:
             img_path: Path = imgs_folder / f"{rom.name}.png"
             img_path.write_bytes(screenshot)
             gr.draw_log(
-                f"{translator.translate('log_04')}", fill=gr.colorBlue, outline=gr.colorBlueD1
+                f"{translator.translate('Scraping completed')}", fill=gr.colorBlue, outline=gr.colorBlueD1
             )
             print(f"Done scraping {rom.name}. Saved file to {img_path}")
         else:
-            gr.draw_log(f"{translator.translate('log_05')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
+            gr.draw_log(f"{translator.translate('Scraping failed!')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
             print(f"Failed to get screenshot for {rom.name}")
         gr.draw_paint()
         time.sleep(3)
@@ -189,7 +185,7 @@ def load_roms_menu() -> None:
         success: int = 0
         failure: int = 0
         gr.draw_log(
-            f"{translator.translate('log_06')} {progress} {translator.translate('log_07')} {len(roms_without_image)}",
+            f"{translator.translate('Scraping')} {progress} {translator.translate('of')} {len(roms_without_image)}",
             fill=gr.colorBlue,
             outline=gr.colorBlueD1,
         )
@@ -210,13 +206,13 @@ def load_roms_menu() -> None:
                     failure += 1
                 progress += 1
                 gr.draw_log(
-                    f"{translator.translate('log_06')} {progress} {translator.translate('log_07')} {len(roms_without_image)}",
+                    f"{translator.translate('Scraping')} {progress} {translator.translate('of')} {len(roms_without_image)}",
                     fill=gr.colorBlue,
                     outline=gr.colorBlueD1,
                 )
                 gr.draw_paint()
         gr.draw_log(
-            f"{translator.translate('log_08')} {success} {translator.translate('log_09')} {failure}",
+            f"{translator.translate('Scraping completed! Success:')} {success} {translator.translate('Errors:')} {failure}",
             fill=gr.colorBlue,
             outline=gr.colorBlueD1,
             width=800,
@@ -260,7 +256,7 @@ def load_roms_menu() -> None:
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayD2, outline=None)
     gr.draw_text(
         (x_size / 2, 20),
-        f"{selected_system} - {translator.translate('message_03')} {len(roms_list)} {translator.translate('message_02')} {len(roms_without_image)}",
+        f"{selected_system} - {translator.translate('Roms:')} {len(roms_list)} {translator.translate('Missing media:')} {len(roms_without_image)}",
         anchor="mm",
     )
 
@@ -274,10 +270,10 @@ def load_roms_menu() -> None:
             i == (roms_selected_position % max_elem),
         )
 
-    button_rectangle((20, button_y), "Start", f"{translator.translate('button_label_04')}")
-    button_circle((190, button_y), "A", f"{translator.translate('button_label_06')}")
-    button_circle((320, button_y), "B", f"{translator.translate('button_label_05')}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('button_label_03')}")
+    button_rectangle((20, button_y), "Start", f"{translator.translate('D. All')}")
+    button_circle((190, button_y), "A", f"{translator.translate('Download')}")
+    button_circle((320, button_y), "B", f"{translator.translate('Back')}")
+    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
