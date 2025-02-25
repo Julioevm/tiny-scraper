@@ -1,0 +1,21 @@
+{
+  "No internet connection": "インターネットに接続できません。\n接続後にもう一度お試しください...",
+  "Select": "選択",
+  "Exit": "終了",
+  "D. All": "すべてダウン",
+  "Back": "戻る",
+  "Download": "クロール",
+  "Tiny Scraper": "小さなスクレーパー",
+  "Checking existing media...": "既存のメディアの確認...",
+  "No roms missing media found...": "欠落しているメディアが見つからない\n ROM はありません...",
+  "Scraping...": "削り取り...",
+  "Scraping completed": "削り取り完了",
+  "Scraping failed!": "スクレイピングに失敗しました!",
+  "Scraping": "削り取り",
+  "of": "合計",
+  "Scraping completed! Success:": "削り取り完了! 成功:",
+  "Errors:": "ミス:",
+  "No roms found in TF": "にROMが見つかりません TF",
+  "Missing media:": "メディアが見つかりません:",
+  "Roms:": "ゲーム数:"
+}

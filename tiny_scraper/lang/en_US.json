@@ -1,0 +1,21 @@
+{
+  "No internet connection": "Unable to connect to the Internet,\nplease try again after connecting...",
+  "Select": "Select",
+  "Exit": "Exit",
+  "D. All": "D. All",
+  "Back": "Back",
+  "Download": "Download",
+  "Tiny Scraper": "Tiny Scraper",
+  "Checking existing media...": "Checking existing media...",
+  "No roms missing media found...": "No roms missing media found...",
+  "Scraping...": "Scraping...",
+  "Scraping completed": "Scraping completed",
+  "Scraping failed!": "Scraping failed!",
+  "Scraping": "Scraping",
+  "of": "of",
+  "Scraping completed! Success:": "Scraping completed! Success:",
+  "Errors:": "Errors:",
+  "No roms found in TF": "No roms found in TF",
+  "Missing media:": "Missing media:",
+  "Roms:": "Roms:"
+}

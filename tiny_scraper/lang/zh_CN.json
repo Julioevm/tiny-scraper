@@ -1,0 +1,21 @@
+{
+  "No internet connection": "未发现有效的网络连接, \n请联网后再试一次...",
+  "Select": "选择",
+  "Exit": "退出",
+  "D. All": "抓取全部",
+  "Back": "返回",
+  "Download": "抓取当前",
+  "Tiny Scraper": "瑞士小刀抓取器",
+  "Checking existing media...": "正在检测已有的预览图...",
+  "No roms missing media found...": "未找到缺少预览图的游戏...",
+  "Scraping...": "正在抓取...",
+  "Scraping completed": "抓取成功",
+  "Scraping failed!": "抓取失败!",
+  "Scraping": "正在抓取",
+  "of": "共",
+  "Scraping completed! Success:": "抓取完成! 成功:",
+  "Errors:": "失败:",
+  "No roms found in TF": "未找到游戏保存在 TF",
+  "Missing media:": "缺少预览图:",
+  "Roms:": "游戏数量:"
+}

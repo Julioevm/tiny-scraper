@@ -68,7 +68,7 @@ class Scraper:
 
         for file in os.listdir(system_path):
             file_path = Path(system_path) / file
-            if file.startswith("."):
+            if file.startswith(".") or file.startswith("-"):
                 continue
             if file_path.is_file():
                 file_extension = file_path.suffix.lower().lstrip(".")
