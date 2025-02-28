@@ -119,6 +119,7 @@ class Scraper:
                                 elif (
                                     not screenshot_url
                                 ):  # Keep the first one as fallback
+                                    print(f"No media found for this region {self.region} and type {self.media_type} combination for {game_name}")
                                     screenshot_url = media["url"]
 
                         if screenshot_url:
