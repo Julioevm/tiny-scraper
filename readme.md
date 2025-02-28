@@ -13,7 +13,7 @@ A small utility to scrape game covers for your RGXX devices
 ## Supported Devices
 
 I've personally only tested it on the RG35XX H
-RG40XXV Reportedly working.
+RG40XXV, RGcubeXX and RG28xx should be supported.
 
 However, it could be compatible with any Anbernic handheld with a Python version >= 3.7. Please, open an issue to confirm the compatibility or to report any problems.
 
