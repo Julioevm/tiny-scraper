@@ -27,6 +27,7 @@ class Scraper:
         self.devpassword = "MDZXZUY5bTBldWs="
         self.media_type = "ss"
         self.region = "wor"
+        self.resize = False
 
     def load_config_from_json(self, filepath) -> bool:
         if not os.path.exists(filepath):
@@ -39,6 +40,7 @@ class Scraper:
             self.password = config.get("password")
             self.media_type = config.get("media_type") or "ss"
             self.region = config.get("region") or "wor"
+            self.resize = config.get("resize") is True
         return True
 
     def get_crc32_from_file(self, rom, chunk_size = 65536):

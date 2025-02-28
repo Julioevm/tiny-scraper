@@ -11,6 +11,8 @@ import socket
 from anbernic import Anbernic
 from scraper import Scraper
 from systems import get_system_id
+from PIL import Image
+from io import BytesIO
 
 translator = Translator(system_lang)
 selected_position = 0
@@ -169,7 +171,7 @@ def load_roms_menu() -> None:
         )
         if screenshot:
             img_path: Path = imgs_folder / f"{rom.name}.png"
-            img_path.write_bytes(screenshot)
+            save_screenshot(img_path, screenshot)
             gr.draw_log(
                 f"{translator.translate('Scraping completed')}", fill=gr.colorBlue, outline=gr.colorBlueD1
             )
@@ -198,7 +200,7 @@ def load_roms_menu() -> None:
                 )
                 if screenshot:
                     img_path: Path = imgs_folder / f"{rom.name}.png"
-                    img_path.write_bytes(screenshot)
+                    save_screenshot(img_path, screenshot)
                     print(f"Done scraping {rom.name}. Saved file to {img_path}")
                     success += 1
                 else:
@@ -277,6 +279,15 @@ def load_roms_menu() -> None:
 
     gr.draw_paint()
 
+def save_screenshot(img_path: Path, screenshot: bytes) -> None:
+    if scraper.resize:
+        print("Resizing image...")
+        img = Image.open(BytesIO(screenshot))
+        target_size = (320, 240)
+        img = img.resize(target_size, Image.LANCZOS)
+        img.save(img_path)
+    else:
+        img_path.write_bytes(screenshot)
 
 def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> None:
     gr.draw_rectangle_r(

@@ -34,13 +34,16 @@ To install Tiny Scraper on your Anbernic device, follow these steps:
     "user": "your_user",
     "password": "your_password",
     "media_type": "sstitle",
-    "region": "wor"
+    "region": "wor",
+    "resize": false
 }
 ```
 
 - Media type let's you select the type of media to download: The main options I suggest are `ss` for a game screenshot, `sstitle`, for the title screen or `box-2D` or `box-3D` (Keep the capital letters) for a box, `mixrbv1` or `mixrbv2` for a mix of screenshot, wheel and so on. For more options check the [screenscraper.fr documentation](https://api.screenscraper.fr/api2/jeuInfos.php?devid=xxx&devpassword=yyy&softname=zzz&output=xml&ssid=test&sspassword=test&crc=50ABC90A&systemeid=1&romtype=rom&romnom=Sonic%20The%20Hedgehog%202%20(World).zip&romtaille=749652)—search in the list for the media entries.  Note that box and mix might be of bigger size than `ss` or `sstitle` In some cases it can cause the game list to load slower.
 
 - Region let's you prioritize the region of the media to download. Some games have different covers for Japan, some for Europe and some for the rest of the world. If the region is not specified it will prioritize the world covers, also if the media type is not available on the preferred region, we will get the first one available. Valid regions are `wor`, `jp`, `eu`, `asi`, `kr`, `ss`, `us`.
+
+- Resize: `true` or `false` — Will resize the downloaded media to 320 by 240, saving space and avoiding slowdowns when listing the roms. But it might make scraping in bulk a bit slower.
 
 3. **Start Tiny Scraper:**
    - From the main menu, go to App Center, select Apps and launch Tiny Scraper.
