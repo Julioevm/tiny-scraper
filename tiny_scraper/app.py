@@ -21,7 +21,7 @@ an = Anbernic()
 scraper = Scraper()
 skip_input_check = False
 
-x_size, y_size ,max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
+x_size, y_size, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
 
 button_x = x_size - 110
 button_y = y_size - 30

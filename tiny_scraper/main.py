@@ -12,7 +12,7 @@ system_list = ['zh_CN', 'zh_TW', 'en_US', 'ja_JP', 'ko_KR', 'es_LA', 'ru_RU', 'd
 try:
     board_info = Path("/mnt/vendor/oem/board.ini").read_text().splitlines()[0]
 except (FileNotFoundError, IndexError):
-    board_info = None
+    board_info = ''
     
 try:
     lang_info = Path("/mnt/vendor/oem/language.ini").read_text().splitlines()[0]

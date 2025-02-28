@@ -7,12 +7,18 @@ import os
 fb: int
 mm: mmap.mmap
 
+# Screen resolutions for different devices (width, height, max_elem)
+# 1: RGcubexx
+# 2: RG34xx
+# 3: RG28xx
+
 screen_resolutions = {
     1: (720, 720, 18),
-    2: (720, 480, 11)
+    2: (720, 480, 11),
+    3: (640, 480, 11),
 }
 
-screen_width, screen_height = screen_resolutions.get(hw_info, (640, 480))
+screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
 bytes_per_pixel = 4
 screen_size = screen_width * screen_height * bytes_per_pixel
 fb_screeninfo = None
@@ -48,11 +54,12 @@ def get_fb_screeninfo():
     return fb_screeninfo
 
 def screen_reset():
-    ioctl(
-        fb,
-        0x4601,
-        fb_screeninfo,
-    )
+    if fb_screeninfo is not None:
+        ioctl(
+            fb,
+            0x4601,
+            bytearray(fb_screeninfo),
+        )
     ioctl(fb, 0x4611, 0)
 
 
