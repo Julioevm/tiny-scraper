@@ -49,6 +49,7 @@ systems = [
     {"name": "VB", "id": 11, "extensions": ["vb", "zip"]},
     {"name": "VIC20", "id": 0, "extensions": ["zip", "a0", "20", "b0", "d6", "d7", "d8", "g4", "g6", "gz", "x6", "t64", "tap", "prg", "p00", "crt", "bin", "cmd", "m3u", "vsf", "nib", "nbz"]},
     {"name": "WS", "id": 45, "extensions": ["ws", "wsc", "zip"]},
+    {"name": "NDS", "id": 15, "extensions": ["nds", "zip"]},
 ]
 
 
