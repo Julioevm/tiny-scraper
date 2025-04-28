@@ -28,6 +28,7 @@ class Scraper:
         self.media_type = "ss"
         self.region = "wor"
         self.resize = False
+        self.overwrite_screenshots = False
 
     def load_config_from_json(self, filepath) -> bool:
         if not os.path.exists(filepath):
@@ -41,6 +42,7 @@ class Scraper:
             self.media_type = config.get("media_type") or "ss"
             self.region = config.get("region") or "wor"
             self.resize = config.get("resize") is True
+            self.overwrite_screenshots = config.get("overwrite_screenshots") is True
         return True
 
     def get_crc32_from_file(self, rom, chunk_size = 65536):

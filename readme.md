@@ -35,7 +35,8 @@ To install Tiny Scraper on your Anbernic device, follow these steps:
     "password": "your_password",
     "media_type": "sstitle",
     "region": "wor",
-    "resize": false
+    "resize": false,
+    "overwrite_screenshots": false
 }
 ```
 
@@ -44,6 +45,8 @@ To install Tiny Scraper on your Anbernic device, follow these steps:
 - Region let's you prioritize the region of the media to download. Some games have different covers for Japan, some for Europe and some for the rest of the world. If the region is not specified it will prioritize the world covers, also if the media type is not available on the preferred region, we will get the first one available. Valid regions are `wor`, `jp`, `eu`, `asi`, `kr`, `ss`, `us`.
 
 - Resize: `true` or `false` — Will resize the downloaded media to 320 by 240, saving space and avoiding slowdowns when listing the roms. But it might make scraping in bulk a bit slower.
+
+- Overwrite Screenshots: `true` or `false` — If set to `true`, existing screenshots will be overwritten by newly scraped ones. If set to `false`, existing screenshots will be preserved.
 
 3. **Start Tiny Scraper:**
    - From the main menu, go to App Center, select Apps and launch Tiny Scraper.
