@@ -8,6 +8,8 @@ from urllib.request import urlopen, Request
 import urllib.parse
 from systems import get_system_extension, systems
 
+DEFAULT_REGION = 'wor'
+
 
 class Rom:
     def __init__(self, name, filename, crc=""):
@@ -26,7 +28,7 @@ class Scraper:
         self.devid = "cmVhdmVu"
         self.devpassword = "MDZXZUY5bTBldWs="
         self.media_type = "ss"
-        self.region = "wor"
+        self.region = DEFAULT_REGION
         self.resize = False
 
     def load_config_from_json(self, filepath) -> bool:
@@ -112,17 +114,36 @@ class Scraper:
                         data = json.loads(response.read())
                         game_data = data.get("response").get("jeu")
 
+                        medias = [media for media in game_data.get("medias", [])
+                                  if media["type"] == self.media_type]
+                        
                         screenshot_url = ""
-                        for media in game_data.get("medias"):
-                            if media["type"] == self.media_type:
-                                if media["region"] == self.region:
+                        # Try to find a media matching the region
+                        for media in medias:
+                            if media.get("region") == self.region:
+                                print(f"Found screenshot found for media type '{self.media_type}' in region '{self.region}'")
+                                screenshot_url = media["url"]
+                                break
+                        
+                        if not screenshot_url:
+                            print(f"No matching screenshot found for media type '{self.media_type}' in region '{self.region}'. Trying default region ('{DEFAULT_REGION}')")
+                        # Fall back to DEFAULT_REGION if no match
+                        if not screenshot_url:
+                            for media in medias:
+                                if media.get("region") == DEFAULT_REGION:
                                     screenshot_url = media["url"]
+                                    print(f"Found screenshot in default region ('{DEFAULT_REGION})'")
                                     break
-                                elif (
-                                    not screenshot_url
-                                ):  # Keep the first one as fallback
-                                    print(f"No media found for this region {self.region} and type {self.media_type} combination for {game_name}")
-                                    screenshot_url = media["url"]
+
+                        if not screenshot_url:
+                            print(f"Still no match in default region. Trying any region...")
+
+                        # Fall back to first match
+                        if not screenshot_url:
+                            for media in medias:
+                                screenshot_url = media["url"]
+                                print(f"Found screenshot in region '{media.region}'")
+                                break
 
                         if screenshot_url:
                             img_request = Request(screenshot_url)
