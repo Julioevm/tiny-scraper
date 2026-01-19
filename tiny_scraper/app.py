@@ -22,6 +22,8 @@ current_window = "console"
 an = Anbernic()
 scraper = Scraper()
 skip_input_check = False
+missing_media_cache = {}
+cached_storage_path = None
 
 x_size, y_size, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
 
@@ -37,6 +39,30 @@ def is_connected():
         return True
     except (socket.timeout, socket.error):
         return False
+
+
+def rebuild_missing_media_cache() -> None:
+    """Rebuild the cache of missing media counts for all systems"""
+    global missing_media_cache, cached_storage_path
+    
+    storage_path = an.get_sd_storage_path()
+    available_systems = scraper.get_available_systems(storage_path)
+    
+    missing_media_cache = {}
+    for system in available_systems:
+        roms_list = scraper.get_roms(storage_path, system)
+        imgs_folder = Path(f"{storage_path}/{system}/Imgs")
+        
+        if not imgs_folder.exists():
+            missing_count = len(roms_list)
+        else:
+            imgs_files = set(scraper.get_image_files_without_extension(imgs_folder))
+            missing_count = len([rom for rom in roms_list if rom.name not in imgs_files])
+
+        
+        missing_media_cache[system] = (missing_count, len(roms_list))
+    
+    cached_storage_path = storage_path
 
 
 def start(config_path: str) -> None:
@@ -75,9 +101,14 @@ def update() -> None:
 
 
 def load_console_menu() -> None:
-    global selected_position, selected_system, current_window, skip_input_check
+    global selected_position, selected_system, current_window, skip_input_check, missing_media_cache, cached_storage_path
 
-    available_systems = scraper.get_available_systems(an.get_sd_storage_path())
+    storage_path = an.get_sd_storage_path()
+    available_systems = scraper.get_available_systems(storage_path)
+
+    # Rebuild cache if storage path changed
+    if cached_storage_path != storage_path:
+        rebuild_missing_media_cache()
 
     if available_systems:
         if input.key("DY"):
@@ -100,6 +131,7 @@ def load_console_menu() -> None:
         an.switch_sd_storage()
         selected_position = 0
         available_systems = scraper.get_available_systems(an.get_sd_storage_path())
+        rebuild_missing_media_cache()
 
     gr.draw_clear()
 
@@ -110,8 +142,11 @@ def load_console_menu() -> None:
         start_idx = int(selected_position / max_elem) * max_elem
         end_idx = start_idx + max_elem
         for i, system in enumerate(available_systems[start_idx:end_idx]):
+            # Get cached missing media count
+            missing_count, total_count = missing_media_cache.get(system, (0, 0))
+            system_display = f"{system} (Missing {missing_count} / {total_count})"
             row_list(
-                system, (20, 50 + (i * 35)), x_size - 40, i == (selected_position % max_elem)
+                system_display, (20, 50 + (i * 35)), x_size - 40, i == (selected_position % max_elem)
             )
         button_circle((30, button_y), "A", f"{translator.translate('Select')}")
     else:
@@ -134,18 +169,20 @@ def load_roms_menu() -> None:
         selected_system
 
     exit_menu = False
+    scraped = False
     roms_list = scraper.get_roms(an.get_sd_storage_path(), selected_system)
     system_path = Path(an.get_sd_storage_path()) / selected_system
     imgs_folder = Path(f"{an.get_sd_storage_path()}/{selected_system}/Imgs")
 
     if not imgs_folder.exists():
         imgs_folder.mkdir()
-        imgs_files: List[str] = []
+        imgs_files = set()
     else:
-        imgs_files = scraper.get_image_files_without_extension(imgs_folder)
+        imgs_files = set(scraper.get_image_files_without_extension(imgs_folder))
 
-    roms_without_image = list(set([rom for rom in roms_list if rom.name not in imgs_files]))
+    roms_without_image = [rom for rom in roms_list if rom.name not in imgs_files]
     roms_without_image.sort(key=lambda x: x.name)
+
     system_id = get_system_id(selected_system)
 
     if len(roms_without_image) < 1:
@@ -181,6 +218,7 @@ def load_roms_menu() -> None:
             print(f"Failed to get screenshot for {rom.name}")
         gr.draw_paint()
         time.sleep(3)
+        scraped = True
         exit_menu = True
     elif input.key("START"):
         progress: int = 1
@@ -221,6 +259,7 @@ def load_roms_menu() -> None:
         )
         gr.draw_paint()
         time.sleep(4)
+        scraped = True
         exit_menu = True
     elif input.key("DY"):
         roms_selected_position += input.value
@@ -251,6 +290,8 @@ def load_roms_menu() -> None:
         gr.draw_clear()
         roms_selected_position = 0
         skip_input_check = True
+        if scraped:
+            rebuild_missing_media_cache()
         return
 
     gr.draw_clear()
