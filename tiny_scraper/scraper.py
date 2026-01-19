@@ -115,15 +115,28 @@ class Scraper:
                         game_data = data.get("response").get("jeu")
 
                         medias = [media for media in game_data.get("medias", [])
-                                  if media["type"] == self.media_type]
+                                  if media.get("type") == self.media_type]
                         
                         screenshot_url = ""
-                        # Try to find a media matching the region
-                        for media in medias:
-                            if media.get("region") == self.region:
-                                print(f"Found screenshot found for media type '{self.media_type}' in region '{self.region}'")
-                                screenshot_url = media["url"]
+                        # Define priority: target region, then default region, then any
+                        regions_to_try = [self.region]
+                        if DEFAULT_REGION not in regions_to_try:
+                            regions_to_try.append(DEFAULT_REGION)
+
+                        for target in regions_to_try:
+                            for media in medias:
+                                if media.get("region") == target:
+                                    screenshot_url = media.get("url")
+                                    print(f"Found screenshot for media type '{self.media_type}' in region '{target}'")
+                                    break
+                            if screenshot_url:
                                 break
+                        
+                        # Fallback to first available if still no match
+                        if not screenshot_url and medias:
+                            screenshot_url = medias[0].get("url")
+                            print(f"No match for preferred regions. Using fallback region '{medias[0].get('region')}'")
+
                         
                         if not screenshot_url:
                             print(f"No matching screenshot found for media type '{self.media_type}' in region '{self.region}'. Trying default region ('{DEFAULT_REGION}')")
