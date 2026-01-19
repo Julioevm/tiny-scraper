@@ -56,8 +56,9 @@ def rebuild_missing_media_cache() -> None:
         if not imgs_folder.exists():
             missing_count = len(roms_list)
         else:
-            imgs_files = scraper.get_image_files_without_extension(imgs_folder)
+            imgs_files = set(scraper.get_image_files_without_extension(imgs_folder))
             missing_count = len([rom for rom in roms_list if rom.name not in imgs_files])
+
         
         missing_media_cache[system] = (missing_count, len(roms_list))
     
@@ -175,12 +176,13 @@ def load_roms_menu() -> None:
 
     if not imgs_folder.exists():
         imgs_folder.mkdir()
-        imgs_files: List[str] = []
+        imgs_files = set()
     else:
-        imgs_files = scraper.get_image_files_without_extension(imgs_folder)
+        imgs_files = set(scraper.get_image_files_without_extension(imgs_folder))
 
-    roms_without_image = list(set([rom for rom in roms_list if rom.name not in imgs_files]))
+    roms_without_image = [rom for rom in roms_list if rom.name not in imgs_files]
     roms_without_image.sort(key=lambda x: x.name)
+
     system_id = get_system_id(selected_system)
 
     if len(roms_without_image) < 1:
