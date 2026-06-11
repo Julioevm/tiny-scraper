@@ -1,148 +1,166 @@
-from fcntl import ioctl
-from PIL import Image, ImageDraw, ImageFont
-from main import hw_info
-import mmap
+import ctypes
 import os
+from main import hw_info, hdmi_info
+from typing import Optional
 
-fb: int
-mm: mmap.mmap
+import sdl2
+from PIL import Image, ImageDraw, ImageFont
 
-# Screen resolutions for different devices (width, height, max_elem)
-# 1: RGcubexx
-# 2: RG34xx
-# 3: RG28xx
+script_dir = os.path.dirname(os.path.abspath(__file__))
+local_font_list = os.path.join(script_dir, "font/font.ttf")
+sys_font_file = os.path.join("/mnt/vendor/bin/default.ttf")
+fallback_font = "/usr/share/fonts/TTF/DejaVuSansMono.ttf"
+font_file = local_font_list if os.path.exists(local_font_list) else (
+    sys_font_file if os.path.exists(sys_font_file) else fallback_font
+)
 
 screen_resolutions = {
     1: (720, 720, 18),
     2: (720, 480, 11),
-    3: (640, 480, 11),
 }
 
-screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
-bytes_per_pixel = 4
-screen_size = screen_width * screen_height * bytes_per_pixel
-fb_screeninfo = None
 
-fontFile = {}
-fontFile[17] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 17)
-fontFile[15] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 15)
-fontFile[13] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 13)
-fontFile[11] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 11)
-colorBlue = "#bb7200"
-colorBlueD1 = "#7f4f00"
-colorGray = "#292929"
-colorGrayL1 = "#383838"
-colorGrayD2 = "#141414"
+class UserInterface:
+    _instance: Optional["UserInterface"] = None
+    _initialized: bool = False
 
-activeImage: Image.Image
-activeDraw: ImageDraw.ImageDraw
+    screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
+    colorBlue = "#bb7200"
+    colorBlueD1 = "#7f4f00"
+    colorGray = "#292929"
+    colorGrayL1 = "#383838"
+    colorGrayD2 = "#141414"
 
+    active_image: Image.Image
+    active_draw: ImageDraw.ImageDraw
 
-def get_fb_screeninfo():
-    global fb_screeninfo
-    if hw_info == 3:
-        fb_screeninfo = b'\xe0\x01\x00\x00\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    else:
-        fb_fd = os.open("/dev/fb0", os.O_RDWR)
-        try:
-            fb_info = bytearray(160)
-            ioctl(fb_fd, 0x4600, fb_info)
-            fb_screeninfo = bytes(fb_info)
-        finally:
-            #print(fb_screeninfo)
-            os.close(fb_fd)
-    return fb_screeninfo
+    def __init__(self):
+        if self._initialized:
+            return
+        self.window = self._create_window()
+        self.renderer = self._create_renderer()
+        self.draw_start()
+        self._initialized = True
 
-def screen_reset():
-    if fb_screeninfo is not None:
-        ioctl(
-            fb,
-            0x4601,
-            bytearray(fb_screeninfo),
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super(UserInterface, cls).__new__(cls)
+        return cls._instance
+
+    ###
+    # WINDOW MANAGEMENT
+    ###
+
+    def create_image(self):
+        return Image.new("RGBA", (self.screen_width, self.screen_height), color="black")
+
+    def draw_start(self):
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 0, 0, 0, 255)
+        sdl2.SDL_RenderClear(self.renderer)
+        self.active_image = self.create_image()
+        self.active_draw = ImageDraw.Draw(self.active_image)
+
+    def _create_window(self):
+        window = sdl2.SDL_CreateWindow(
+            "Tiny Scraper".encode("utf-8"),
+            sdl2.SDL_WINDOWPOS_UNDEFINED,
+            sdl2.SDL_WINDOWPOS_UNDEFINED,
+            0,
+            0,
+            sdl2.SDL_WINDOW_FULLSCREEN_DESKTOP | sdl2.SDL_WINDOW_SHOWN,
         )
-    ioctl(fb, 0x4611, 0)
+        if not window:
+            print(f"Failed to create window: {sdl2.SDL_GetError()}")
+            raise RuntimeError("Failed to create window")
+        return window
 
+    def _create_renderer(self):
+        renderer = sdl2.SDL_CreateRenderer(
+            self.window, -1, sdl2.SDL_RENDERER_ACCELERATED
+        )
+        if not renderer:
+            renderer = sdl2.SDL_CreateRenderer(
+                self.window, -1, sdl2.SDL_RENDERER_SOFTWARE
+            )
+            if not renderer:
+                print(f"Failed to create renderer: {sdl2.SDL_GetError()}")
+                raise RuntimeError("Failed to create renderer")
+        sdl2.SDL_SetHint(sdl2.SDL_HINT_RENDER_SCALE_QUALITY, b"0")
+        return renderer
 
-def draw_start():
-    global fb, mm
-    fb = os.open("/dev/fb0", os.O_RDWR)
-    mm = mmap.mmap(fb, screen_size)
+    def draw_paint(self):
+        if hw_info == 3 and hdmi_info != "HDMI=1":
+            rotated_image = self.active_image.rotate(90, expand=True)
+            rgba_data = rotated_image.tobytes()
+            temp_width, temp_height = rotated_image.size
+        else:
+            rgba_data = self.active_image.tobytes()
+            temp_width, temp_height = self.screen_width, self.screen_height
 
+        surface = sdl2.SDL_CreateRGBSurfaceWithFormatFrom(
+            rgba_data,
+            temp_width,
+            temp_height,
+            32,
+            temp_width * 4,
+            sdl2.SDL_PIXELFORMAT_RGBA32,
+        )
+        texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, surface)
+        sdl2.SDL_FreeSurface(surface)
 
-def draw_end():
-    global fb, mm
-    mm.close()
-    os.close(fb)
+        window_width = ctypes.c_int()
+        window_height = ctypes.c_int()
+        sdl2.SDL_GetWindowSize(
+            self.window, ctypes.byref(window_width), ctypes.byref(window_height)
+        )
+        window_width, window_height = window_width.value, window_height.value
 
+        dst_rect = sdl2.SDL_Rect(0, 0, window_width, window_height)
+        sdl2.SDL_RenderCopy(self.renderer, texture, None, dst_rect)
+        sdl2.SDL_RenderPresent(self.renderer)
+        sdl2.SDL_DestroyTexture(texture)
 
-def create_image():
-    image = Image.new("RGBA", (screen_width, screen_height), color="black")
-    return image
+    def draw_end(self):
+        sdl2.SDL_DestroyRenderer(self.renderer)
+        sdl2.SDL_DestroyWindow(self.window)
+        sdl2.SDL_Quit()
 
+    ###
+    # DRAWING FUNCTIONS
+    ###
 
-def draw_active(image):
-    global activeImage, activeDraw
-    activeImage = image
-    activeDraw = ImageDraw.Draw(activeImage)
+    def draw_clear(self):
+        self.active_draw.rectangle(
+            [0, 0, self.screen_width, self.screen_height], fill="black"
+        )
 
+    def draw_text(self, position, text, font=15, color="white", **kwargs):
+        self.active_draw.text(
+            position, text, font=ImageFont.truetype(font_file, font), fill=color, **kwargs
+        )
 
-def draw_paint():
-    global activeImage
-    if hw_info == 3:
-        img = activeImage.rotate(90, expand=True)
-        mm.seek(0)
-        mm.write(img.tobytes())
-    else:
-        mm.seek(0)
-        mm.write(activeImage.tobytes())
+    def draw_rectangle(self, position, fill=None, outline=None, width=1):
+        self.active_draw.rectangle(position, fill=fill, outline=outline, width=width)
 
+    def draw_rectangle_r(self, position, radius, fill=None, outline=None):
+        self.active_draw.rounded_rectangle(position, radius, fill=fill, outline=outline)
 
-def draw_clear():
-    global activeDraw
-    activeDraw.rectangle((0, 0, screen_width, screen_height), fill="black")
+    def draw_circle(self, position, radius, fill=None, outline="white"):
+        self.active_draw.ellipse(
+            [
+                position[0],
+                position[1],
+                position[0] + radius,
+                position[1] + radius,
+            ],
+            fill=fill,
+            outline=outline,
+        )
 
-
-def draw_text(position, text, font=15, color="white", **kwargs):
-    global activeDraw
-    activeDraw.text(position, text, font=fontFile[font], fill=color, **kwargs)
-
-
-def draw_rectangle(position, fill=None, outline=None, width=1):
-    global activeDraw
-    activeDraw.rectangle(position, fill=fill, outline=outline, width=width)
-
-
-def draw_rectangle_r(position, radius, fill=None, outline=None):
-    global activeDraw
-    activeDraw.rounded_rectangle(position, radius, fill=fill, outline=outline)
-
-
-def draw_circle(position, radius, fill=None, outline="white"):
-    global activeDraw
-    activeDraw.ellipse(
-        [position[0], position[1], position[0] + radius, position[1] + radius],
-        fill=fill,
-        outline=outline,
-    )
-
-
-def draw_log(text, fill="Black", outline="black", width=500):
-    # Center the rectangle horizontally
-    x = (screen_width - width) / 2
-    # Center the rectangle vertically
-    y = (screen_height - 80) / 2  # 80 is the height of the rectangle
-    draw_rectangle_r([x, y, x + width, y + 80], 5, fill=fill, outline=outline)
-
-    # Center the text within the rectangle
-    text_x = x + width / 2
-    text_y = y + 40  # Vertically center within the 80px height
-    draw_text((text_x, text_y), text, anchor="mm")  # Use middle-middle anchor
-
-
-fb_screeninfo = get_fb_screeninfo()
-
-draw_start()
-screen_reset()
-
-imgMain = create_image()
-draw_active(imgMain)
+    def draw_log(self, text, fill="Black", outline="black", width=500):
+        x = (self.screen_width - width) / 2
+        y = (self.screen_height - 80) / 2
+        self.draw_rectangle_r([x, y, x + width, y + 80], 5, fill=fill, outline=outline)
+        text_x = x + width / 2
+        text_y = y + 40
+        self.draw_text((text_x, text_y), text, anchor="mm")

@@ -1,9 +1,8 @@
 from pathlib import Path
 from typing import List, Optional
 from main import hw_info, system_lang
-from graphic import screen_resolutions
+from graphic import screen_resolutions, UserInterface
 from language import Translator
-import graphic as gr
 import input
 import sys
 import time
@@ -13,6 +12,8 @@ from scraper import Scraper
 from systems import get_system_id
 from PIL import Image
 from io import BytesIO
+
+gr = UserInterface()
 
 translator = Translator(system_lang)
 selected_position = 0
@@ -67,6 +68,7 @@ def rebuild_missing_media_cache() -> None:
 
 def start(config_path: str) -> None:
     print("Starting Tiny Scraper...")
+    print(f"[DEBUG] app.start: hw_info={hw_info} x_size={x_size} y_size={y_size}")
     if not is_connected():
         gr.draw_log(
             f"{translator.translate('No internet connection')}", fill=gr.colorBlue, outline=gr.colorBlueD1
@@ -75,6 +77,7 @@ def start(config_path: str) -> None:
         time.sleep(3)
         sys.exit(1)
     scraper.load_config_from_json(config_path)
+    print("[DEBUG] app.start: config loaded, calling load_console_menu")
     load_console_menu()
 
 
@@ -103,8 +106,10 @@ def update() -> None:
 def load_console_menu() -> None:
     global selected_position, selected_system, current_window, skip_input_check, missing_media_cache, cached_storage_path
 
+    print("[DEBUG] load_console_menu: entered")
     storage_path = an.get_sd_storage_path()
     available_systems = scraper.get_available_systems(storage_path)
+    print(f"[DEBUG] load_console_menu: storage={storage_path} systems={len(available_systems)}")
 
     # Rebuild cache if storage path changed
     if cached_storage_path != storage_path:
