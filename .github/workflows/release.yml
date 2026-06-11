@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure LF line endings
+        run: |
+          sed -i 's/\r$//' tiny-scraper.sh release.sh
+          find tiny_scraper -name '*.py' -exec sed -i 's/\r$//' {} +
+
+      - name: Build release bundle
+        run: bash release.sh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: tiny-scraper.zip
+          generate_release_notes: true
