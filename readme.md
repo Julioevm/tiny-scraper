@@ -54,3 +54,27 @@ To install Tiny Scraper on your Anbernic device, follow these steps:
 Old version of stock OS might cause issues. V 1.0.3 (20240511) hs been reported to miss some necessary libraries: No module named 'PIL' try to update in this case.
 
 Any issue should be logged in the log.txt file inside the `tiny_scraper` folder. Open an issue and share its contents for help!
+
+## Releasing
+
+To create a new release, push a version tag to the repo. This triggers the [release workflow](.github/workflows/release.yml) which builds the `.zip` and creates a GitHub Release with auto-generated notes.
+
+```bash
+# Make sure you're on main and up to date
+git checkout main
+git pull origin main
+
+# Create and push a new version tag
+git tag v1.x.x
+git push origin v1.x.x
+```
+
+If the tag already exists, either pick a new version or delete the old one:
+
+```bash
+# Delete a local tag
+git tag -d v1.x.x
+
+# Delete a remote tag
+git push origin --delete v1.x.x
+```
