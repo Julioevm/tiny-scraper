@@ -17,5 +17,8 @@
   "Errors:": "ミス:",
   "No roms found in TF": "にROMが見つかりません TF",
   "Missing media:": "メディアが見つかりません:",
-  "Roms:": "ゲーム数:"
+  "Roms:": "ゲーム数:",
+  "Show All": "全て表示",
+  "Show Missing": "不足のみ",
+  "No systems missing media": "すべてのシステムにメディアがあります!"
 }

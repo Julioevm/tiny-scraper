@@ -17,5 +17,8 @@
   "Errors:": "失败:",
   "No roms found in TF": "未找到游戏保存在 TF",
   "Missing media:": "缺少预览图:",
-  "Roms:": "游戏数量:"
+  "Roms:": "游戏数量:",
+  "Show All": "显示全部",
+  "Show Missing": "仅显示缺少",
+  "No systems missing media": "所有系统都已有预览图!"
 }

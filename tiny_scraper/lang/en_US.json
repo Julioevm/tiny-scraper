@@ -17,5 +17,8 @@
   "Errors:": "Errors:",
   "No roms found in TF": "No roms found in TF",
   "Missing media:": "Missing media:",
-  "Roms:": "Roms:"
+  "Roms:": "Roms:",
+  "Show All": "Show All",
+  "Show Missing": "Show Missing",
+  "No systems missing media": "All systems have media!"
 }

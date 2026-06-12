@@ -25,6 +25,7 @@ scraper = Scraper()
 skip_input_check = False
 missing_media_cache = {}
 cached_storage_path = None
+show_all_systems = False
 
 x_size, y_size, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
 
@@ -103,8 +104,15 @@ def update() -> None:
         load_console_menu()
 
 
+def get_filtered_systems(available_systems: List[str]) -> List[str]:
+    """Filter systems based on show_all_systems toggle"""
+    if show_all_systems:
+        return available_systems
+    return [s for s in available_systems if missing_media_cache.get(s, (1, 0))[0] > 0]
+
+
 def load_console_menu() -> None:
-    global selected_position, selected_system, current_window, skip_input_check, missing_media_cache, cached_storage_path
+    global selected_position, selected_system, current_window, skip_input_check, missing_media_cache, cached_storage_path, show_all_systems
 
     print("[DEBUG] load_console_menu: entered")
     storage_path = an.get_sd_storage_path()
@@ -115,15 +123,22 @@ def load_console_menu() -> None:
     if cached_storage_path != storage_path:
         rebuild_missing_media_cache()
 
-    if available_systems:
+    if input.key("X"):
+        show_all_systems = not show_all_systems
+        selected_position = 0
+        input.reset_input()
+
+    display_systems = get_filtered_systems(available_systems)
+
+    if display_systems:
         if input.key("DY"):
             selected_position += input.value
             if selected_position < 0:
-                selected_position = len(available_systems) - 1
-            elif selected_position >= len(available_systems):
+                selected_position = len(display_systems) - 1
+            elif selected_position >= len(display_systems):
                 selected_position = 0
         elif input.key("A"):
-            selected_system = available_systems[selected_position]
+            selected_system = display_systems[selected_position]
             current_window = "roms"
             gr.draw_log(
                 f"{translator.translate('Checking existing media...')}", fill=gr.colorBlue, outline=gr.colorBlueD1
@@ -143,10 +158,10 @@ def load_console_menu() -> None:
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayD2, outline=None)
     gr.draw_text((x_size / 2, 20), f"{translator.translate('Tiny Scraper')}", font=17, anchor="mm")
 
-    if len(available_systems) > 1:
+    if len(display_systems) > 0:
         start_idx = int(selected_position / max_elem) * max_elem
         end_idx = start_idx + max_elem
-        for i, system in enumerate(available_systems[start_idx:end_idx]):
+        for i, system in enumerate(display_systems[start_idx:end_idx]):
             # Get cached missing media count
             missing_count, total_count = missing_media_cache.get(system, (0, 0))
             system_display = f"{system} (Missing {missing_count} / {total_count})"
@@ -156,11 +171,12 @@ def load_console_menu() -> None:
         button_circle((30, button_y), "A", f"{translator.translate('Select')}")
     else:
         gr.draw_text(
-            (x_size / 2, y_size / 2), f"{translator.translate('No roms found in TF')} {an.get_sd_storage()}", anchor="mm"
+            (x_size / 2, y_size / 2), f"{translator.translate('No systems missing media')}" if available_systems else f"{translator.translate('No roms found in TF')} {an.get_sd_storage()}", anchor="mm"
         )
 
     button_circle((button_x-110, button_y), "Y", f"TF: {an.get_sd_storage()}")
     button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    button_circle((button_x-220, button_y), "X", f"{translator.translate('Show All') if show_all_systems else translator.translate('Show Missing')}")
 
     gr.draw_paint()
 
