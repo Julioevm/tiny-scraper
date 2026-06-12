@@ -12,10 +12,20 @@ A small utility to scrape game covers for your RGXX devices
 
 ## Supported Devices
 
-I've personally only tested it on the RG35XX H
-RG40XXV, RGcubeXX and RG28xx should be supported.
+| Model | Board ID | Notes |
+|---|---|---|
+| RGcubexx | 1 | 720×720 display |
+| RG34xx | 2 | |
+| RG34xxSP | 2 | |
+| RG28xx | 3 | Portrait display (rotated 90°) |
+| RG35xx+ | 4 | |
+| RG35xxH | 5 | Tested ✓ |
+| RG35xxSP | 6 | |
+| RG40xxH | 7 | |
+| RG40xxV | 8 | Tested ✓ |
+| RG35xxPRO | 9 | |
 
-However, it could be compatible with any Anbernic handheld with a Python version >= 3.7. Please, open an issue to confirm the compatibility or to report any problems.
+Could also be compatible with other Anbernic handhelds running a Python version ≥ 3.7. Please open an issue to confirm compatibility or report any problems.
 
 ## Installation
 
